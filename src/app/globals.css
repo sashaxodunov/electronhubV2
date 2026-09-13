@@ -1,26 +1,109 @@
-@import "tailwindcss";
-
+@import 'tailwindcss';
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+	--background: #ffffff;
+	--foreground: #171717;
+	--transition-duration: 200ms;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+	/* Colors */
+	--color-accent: #ffd479;
+	--color-accent-hover: #eac880;
+
+	--color-background: #1f2a32;
+	--color-background-dark: #182127;
+	--color-background-light: #263640;
+
+	--color-border: #3b4a54;
+	--color-border-hover: #2b3c47;
+
+	--color-gray: #808080;
+
+	/* Текст */
+	--color-text: #ffffff;
+	--color-text-secondary: #dddddd;
+	--color-text-muted: #90a1b9;
+
+	/* Поверхности */
+	--color-surface: #252525;
+	--color-control: #2a2a2a;
+	--color-battery: #292929;
+	--color-resistor: #343434;
+	--color-resistor-screen: #303030;
+	--color-slider-track: #3f3f3f;
+
+	/* Границы и проводники */
+	--color-wire: #999999;
+	--color-metal: #d7d7d7;
+	--color-battery-border: #eeeeee;
+	--color-resistor-border: #686868;
+	--color-screen-border: #515151;
+
+	/* Акцент и анимация */
+	--color-electric: #3478d4;
+	--color-info: #22d3ee;
+
+	/* Тени */
+	--color-shadow: #000000;
+
+	/* Fonts */
+
+	/* Border Radius */
+
+	--radius-l: 12px;
+	--radius-m: 10px;
+	--radius-default: 8px;
+	--radius-xs: 6px;
+
+	/* Typography */
+
+	--text-h1: clamp(1.75rem, 4vw, 3.625rem);
+	--text-h2: clamp(2.5rem, 1.509rem + 4.45vw, 5rem);
+	--text-h3: clamp(1.5rem, 1.227rem + 1.36vw, 2.25rem);
+	--text-h4: clamp(1.25rem, 1.114rem + 0.68vw, 1.625rem);
+	--text-h5: clamp(1.125rem, 1.08rem + 0.23vw, 1.25rem);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+	:root {
+		--background: transparent;
+		--foreground: #ededed;
+	}
 }
 
+* {
+	box-sizing: border-box;
+}
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+	background: var(--background);
+	color: var(--foreground);
+	font-family: Arial, Helvetica, sans-serif;
+	box-sizing: border-box;
+}
+
+.header {
+	padding-block: 20px;
+	background-image: url('/images/home/header-bg.jpg');
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
+	border-radius: 20px;
+	height: 130px;
+}
+@media (max-width: 750px) {
+	.header {
+		padding-block: 10px;
+		height: 100px;
+	}
+}
+
+@media (max-width: 370px) {
+	.header {
+		padding-block: 8px;
+		height: 80px;
+	}
 }
