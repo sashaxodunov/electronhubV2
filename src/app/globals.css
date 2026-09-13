@@ -57,8 +57,8 @@
 
 	/* Typography */
 
-	--text-h1: clamp(1.75rem, 4vw, 3.625rem);
-	--text-h2: clamp(2.5rem, 1.509rem + 4.45vw, 5rem);
+	--text-h1: clamp(2.5rem, 1.75rem + 3.33vw, 4.5rem);
+	--text-h2: clamp(1.75rem, 1.125rem + 2.78vw, 3.625rem);
 	--text-h3: clamp(1.5rem, 1.227rem + 1.36vw, 2.25rem);
 	--text-h4: clamp(1.25rem, 1.114rem + 0.68vw, 1.625rem);
 	--text-h5: clamp(1.125rem, 1.08rem + 0.23vw, 1.25rem);
@@ -66,6 +66,17 @@
 	--color-foreground: var(--foreground);
 	--font-sans: var(--font-geist-sans);
 	--font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-family: var(--font-bebas), sans-serif;
+	}
 }
 
 @media (prefers-color-scheme: dark) {
@@ -87,6 +98,7 @@ body {
 
 .header {
 	padding-block: 20px;
+	max-width: 1200px;
 	background-image: url('/images/home/header-bg.jpg');
 	background-repeat: no-repeat;
 	background-size: cover;

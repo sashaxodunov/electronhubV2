@@ -1,36 +1,20 @@
-// import CalculatorSection from "@/components/layout/CalculatorSection/CalculatorSection";
-// import Container from '@/components/layout/Container';
-// import DatasheetSection from "@/components/layout/DatasheetSection/DatasheetSection";
-// import DocumentationSection from "@/components/layout/DocumentationSection/DocumentationSection";
-// import SchemesSection from "@/components/layout/SchemesSection/SchemesSection";
-// import TheorySection from "@/components/layout/TheorySection/TheorySection";
+import CalculatorSection from '@/components/layout/section/CalculatorSection'
+import DatasheetSection from '@/components/layout/section/DatasheetSection'
+import DocumentationSection from '@/components/layout/section/DocumentationSection'
+import SchemesSection from '@/components/layout/section/SchemesSection'
+import TheorySection from '@/components/layout/section/TheorySection'
 
 // throw new Error
 export default function HomePage() {
 	return (
 		<>
-			{/* <Header /> */}
-
 			<main className='content'>
-				Привет мир
-				{/* <Container>
-					<DatasheetSection />
-				</Container>
-
+				<DatasheetSection />
 				<TheorySection />
-
-				<Container>
-					<DocumentationSection />
-				</Container>
-
+				<DocumentationSection />
 				<CalculatorSection />
-
-				<Container>
-					<SchemesSection />
-				</Container> */}
+				<SchemesSection />
 			</main>
-
-			{/* <Footer /> */}
 		</>
 	)
 }
