@@ -1,0 +1,38 @@
+import { bigint, bigserial, boolean, foreignKey, integer, numeric, pgTable, text, timestamp, unique, varchar } from "drizzle-orm/pg-core";
+import { packages } from "./packages";
+
+export const packageVariants = pgTable("package_variants", {
+  id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+  packageId: bigint("package_id", { mode: "number" }).notNull(),
+  name: varchar({ length: 150 }).notNull(),
+  slug: varchar({ length: 150 }).notNull(),
+  manufacturer: varchar({ length: 150 }),
+  pinCount: integer("pin_count"),
+  pitchMm: numeric("pitch_mm", { precision: 8, scale: 3 }),
+  lengthMm: numeric("length_mm", { precision: 8, scale: 3 }),
+  widthMm: numeric("width_mm", { precision: 8, scale: 3 }),
+  heightMm: numeric("height_mm", { precision: 8, scale: 3 }),
+  bodyLengthMm: numeric("body_length_mm", { precision: 8, scale: 3 }),
+  bodyWidthMm: numeric("body_width_mm", { precision: 8, scale: 3 }),
+  leadLengthMm: numeric("lead_length_mm", { precision: 8, scale: 3 }),
+  leadWidthMm: numeric("lead_width_mm", { precision: 8, scale: 3 }),
+  thermalPad: boolean("thermal_pad").default(false).notNull(),
+  description: text(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).defaultNow().notNull(),
+  variantCode: varchar("variant_code", { length: 100 }),
+  standardCode: varchar("standard_code", { length: 100 }),
+  bodyShape: varchar("body_shape", { length: 50 }),
+  leadCount: integer("lead_count"),
+  pitchXMm: numeric("pitch_x_mm", { precision: 8, scale: 3 }),
+  pitchYMm: numeric("pitch_y_mm", { precision: 8, scale: 3 }),
+  terminalWidthMm: numeric("terminal_width_mm", { precision: 8, scale: 3 }),
+  terminalLengthMm: numeric("terminal_length_mm", { precision: 8, scale: 3 }),
+  exposedPadLengthMm: numeric("exposed_pad_length_mm", { precision: 8, scale: 3 }),
+  exposedPadWidthMm: numeric("exposed_pad_width_mm", { precision: 8, scale: 3 }),
+  packageDrawingUrl: text("package_drawing_url"),
+}, (table) => [
+  foreignKey({ columns: [table.packageId], foreignColumns: [packages.id], name: "package_variants_package_id_fkey" }).onDelete("cascade"),
+  unique("package_variants_slug_key").on(table.slug),
+]);

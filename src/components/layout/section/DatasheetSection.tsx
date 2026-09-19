@@ -45,7 +45,7 @@ export default function DatasheetSection() {
 						className='min-w-0'
 					>
 						<Link
-							href={`/datasheets/${category.slug}`}
+							href={`/components/${category.slug}`}
 							className='group relative isolate mx-auto block	aspect-3/4 w-full max-w-80 overflow-hidden rounded-2xl bg-neutral-900	shadow-[0_4px_15px_rgba(0,0,0,0.2)]	focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent	min-[400px]:max-w-none sm:rounded-[20px]'
 						>
 							<Image

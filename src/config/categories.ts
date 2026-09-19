@@ -8,19 +8,19 @@ export interface Category {
 export const datasheetCategories: Category[] = [
 	{
 		title: 'Резисторы',
-		slug: 'resistor',
+		slug: 'resistors',
 		image: '/images/home/datasheet/resistor.jpg',
 		alt: 'Резистор'
 	},
 	{
 		title: 'Конденсаторы',
-		slug: 'capacitor',
+		slug: 'capacitors',
 		image: '/images/home/datasheet/capacitor.jpg',
 		alt: 'Конденсаторы'
 	},
 	{
 		title: 'Индуктивности',
-		slug: 'inductance',
+		slug: 'inductances',
 		image: '/images/home/datasheet/inductance.jpg',
 		alt: 'Индуктивности'
 	},
@@ -56,7 +56,7 @@ export const datasheetCategories: Category[] = [
 	},
 	{
 		title: 'Датчики',
-		slug: 'sensor',
+		slug: 'sensors',
 		image: '/images/home/datasheet/sensor.jpg',
 		alt: 'Датчики'
 	},
@@ -86,7 +86,7 @@ export const datasheetCategories: Category[] = [
 	},
 	{
 		title: 'Источники питания',
-		slug: 'power',
+		slug: 'powers',
 		image: '/images/home/datasheet/power.jpg',
 		alt: 'Источники питания'
 	},
