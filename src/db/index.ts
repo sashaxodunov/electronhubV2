@@ -1,8 +1,18 @@
-import 'server-only' /** Защищает слой БД от случайного попадания в Client Component */
+import 'server-only'
 
-import postgres from 'postgres'
-import { drizzle } from 'drizzle-orm/postgres-js'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 
-const client = postgres(process.env.DATABASE_URL!)
+import * as schema from './schema'
+import * as relations from './relations'
 
-export const db = drizzle(client)
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL
+})
+
+export const db = drizzle(pool, {
+	schema: {
+		...schema,
+		...relations
+	}
+})
