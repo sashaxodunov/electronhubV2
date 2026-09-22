@@ -25,7 +25,7 @@ export const componentAssets = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// уникальный идентификатор файла/ресурса
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// Определяет, какому компоненту принадлежит файл.
 		assetType: assetType('asset_type').notNull(),
 		// enums тип определяет тип ресурса

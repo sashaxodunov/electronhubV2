@@ -24,7 +24,7 @@ export const packageVariants = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный идентификатор варианта корпуса
-		packageId: bigint('package_id', { mode: 'number' }).notNull(),
+		packageId: bigint('package_id', { mode: 'bigint' }).notNull(),
 		// Ссылка на родительский корпус
 		name: varchar({ length: 150 }).notNull(),
 		// Название конкретного варианта

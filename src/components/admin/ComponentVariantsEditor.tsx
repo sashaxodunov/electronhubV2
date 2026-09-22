@@ -29,7 +29,7 @@ type PackageVariantOption = {
 }
 
 type ComponentVariantsEditorProps = {
-	componentId: number
+	componentId: bigint
 	variants: Variant[]
 	packageVariants: PackageVariantOption[]
 }

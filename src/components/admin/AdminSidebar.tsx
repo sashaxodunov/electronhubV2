@@ -38,6 +38,11 @@ const navigation = [
 		title: 'Применения',
 		href: '/admin/applications',
 		icon: '⌘'
+	},
+	{
+		title: 'Глоссарий',
+		href: '/admin/glossary',
+		icon: '⌘'
 	}
 ]
 

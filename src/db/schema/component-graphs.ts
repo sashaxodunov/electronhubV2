@@ -25,7 +25,7 @@ export const componentGraphs = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// уникальный идентификатор графика
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// связывает график с таблицей components
 		title: varchar({ length: 500 }).notNull(),
 		// Название графика
@@ -43,7 +43,7 @@ export const componentGraphs = pgTable(
 		// Номер страницы исходного документа, например datasheet.
 		description: text(),
 		// Дополнительное описание графика
-		imageAssetId: bigint('image_asset_id', { mode: 'number' }),
+		imageAssetId: bigint('image_asset_id', { mode: 'bigint' }),
 		// Связывает график с изображением
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
 			.defaultNow()

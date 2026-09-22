@@ -32,7 +32,7 @@ export const packageMedia = pgTable(
 		/**
 		 * Медиа принадлежит общему типу корпуса.
 		 */
-		packageId: bigint('package_id', { mode: 'number' }),
+		packageId: bigint('package_id', { mode: 'bigint' }),
 
 		/**
 		 * Медиа принадлежит конкретному варианту корпуса.
@@ -64,7 +64,7 @@ export const packageMedia = pgTable(
 		/**
 		 * Размер файла в байтах.
 		 */
-		fileSize: bigint('file_size', { mode: 'number' }),
+		fileSize: bigint('file_size', { mode: 'bigint' }),
 
 		/**
 		 * Размер изображения.

@@ -23,7 +23,7 @@ export const componentOperatingConditions = pgTable(
 	'component_operating_conditions',
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// идентификатор компонента которому принадлежит условие
 		name: varchar({ length: 255 }).notNull(),
 		// наименование параметра

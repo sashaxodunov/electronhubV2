@@ -27,11 +27,11 @@ export const componentVariants = pgTable(
 			.notNull(),
 
 		componentId: bigint('component_id', {
-			mode: 'number'
+			mode: 'bigint'
 		}).notNull(),
 
 		packageVariantId: bigint('package_variant_id', {
-			mode: 'number'
+			mode: 'bigint'
 		}),
 
 		designation: varchar({

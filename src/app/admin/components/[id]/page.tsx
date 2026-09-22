@@ -5,11 +5,11 @@ import { eq } from 'drizzle-orm'
 import ComponentVariantsEditor from '@/components/admin/ComponentVariantsEditor'
 import { db } from '@/db'
 import {
-	components,
-	manufacturers,
 	categories,
 	componentSeries,
 	componentVariants,
+	components,
+	manufacturers,
 	packageVariants,
 	packages
 } from '@/db/schema'
@@ -30,9 +30,15 @@ export default async function ComponentPage({
 	const { id } = await params
 	const { tab } = await searchParams
 
-	const componentId = Number(id)
+	let componentId: bigint
 
-	if (!Number.isInteger(componentId) || componentId <= 0) {
+	try {
+		componentId = BigInt(id)
+
+		if (componentId <= BigInt(0)) {
+			notFound()
+		}
+	} catch {
 		notFound()
 	}
 
@@ -64,7 +70,7 @@ export default async function ComponentPage({
 		.leftJoin(manufacturers, eq(components.manufacturerId, manufacturers.id))
 		.leftJoin(categories, eq(components.categoryId, categories.id))
 		.leftJoin(componentSeries, eq(components.seriesId, componentSeries.id))
-		.where(eq(components.id, BigInt(componentId)))
+		.where(eq(components.id, componentId))
 		.limit(1)
 
 	const component = result[0]
@@ -81,18 +87,14 @@ export default async function ComponentPage({
 			id: componentVariants.id,
 			designation: componentVariants.designation,
 			slug: componentVariants.slug,
-
 			packageVariantId: componentVariants.packageVariantId,
 			packageVariantName: packageVariants.name,
 			packageName: packages.name,
-
 			marking: componentVariants.marking,
 			process: componentVariants.process,
 			packing: componentVariants.packing,
-
 			operatingTempMin: componentVariants.operatingTempMin,
 			operatingTempMax: componentVariants.operatingTempMax,
-
 			isPrimary: componentVariants.isPrimary,
 			isActive: componentVariants.isActive
 		})
@@ -193,79 +195,79 @@ export default async function ComponentPage({
 				<div className='overflow-x-auto border-b border-gray-200'>
 					<nav className='flex min-w-max'>
 						<Tab
-							href={`/admin/components/${component.id}`}
+							href={`/admin/components/${component.id.toString()}`}
 							label='Основное'
 							active={!tab}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=variants`}
+							href={`/admin/components/${component.id.toString()}?tab=variants`}
 							label='Варианты'
 							active={tab === 'variants'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=pins`}
+							href={`/admin/components/${component.id.toString()}?tab=pins`}
 							label='Пины'
 							active={tab === 'pins'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=specifications`}
+							href={`/admin/components/${component.id.toString()}?tab=specifications`}
 							label='Характеристики'
 							active={tab === 'specifications'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=conditions`}
+							href={`/admin/components/${component.id.toString()}?tab=conditions`}
 							label='Условия'
 							active={tab === 'conditions'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=ratings`}
+							href={`/admin/components/${component.id.toString()}?tab=ratings`}
 							label='Ratings'
 							active={tab === 'ratings'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=thermal`}
+							href={`/admin/components/${component.id.toString()}?tab=thermal`}
 							label='Thermal'
 							active={tab === 'thermal'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=aliases`}
+							href={`/admin/components/${component.id.toString()}?tab=aliases`}
 							label='Aliases'
 							active={tab === 'aliases'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=applications`}
+							href={`/admin/components/${component.id.toString()}?tab=applications`}
 							label='Applications'
 							active={tab === 'applications'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=datasheets`}
+							href={`/admin/components/${component.id.toString()}?tab=datasheets`}
 							label='Datasheets'
 							active={tab === 'datasheets'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=assets`}
+							href={`/admin/components/${component.id.toString()}?tab=assets`}
 							label='Assets'
 							active={tab === 'assets'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=graphs`}
+							href={`/admin/components/${component.id.toString()}?tab=graphs`}
 							label='Графики'
 							active={tab === 'graphs'}
 						/>
 
 						<Tab
-							href={`/admin/components/${component.id}?tab=relations`}
+							href={`/admin/components/${component.id.toString()}?tab=relations`}
 							label='Связи'
 							active={tab === 'relations'}
 						/>
@@ -273,7 +275,6 @@ export default async function ComponentPage({
 				</div>
 
 				{/* Main content */}
-
 				{tab === 'variants' ? (
 					<ComponentVariantsEditor
 						componentId={componentId}

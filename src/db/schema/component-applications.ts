@@ -18,8 +18,8 @@ import { applications } from './applications'
 export const componentApplications = pgTable(
 	'component_applications',
 	{
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
-		applicationId: bigint('application_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
+		applicationId: bigint('application_id', { mode: 'bigint' }).notNull(),
 		description: text()
 	},
 	table => [

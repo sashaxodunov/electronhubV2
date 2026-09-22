@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createComponent } from '@/actions/components'
+import { Link } from 'lucide-react'
 
 type SelectOption = {
 	id: number | bigint
@@ -292,12 +293,12 @@ export default function ComponentForm({
 
 			{/* Кнопки */}
 			<div className='flex items-center justify-end gap-3'>
-				<a
+				<Link
 					href='/admin/components'
 					className='rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50'
 				>
 					Отмена
-				</a>
+				</Link>
 
 				<button
 					type='submit'

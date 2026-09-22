@@ -27,7 +27,7 @@ export const datasheets = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Универсальный идентификатор документа
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// указывает какому компоненту принадлежит документ
 		documentType: documentType('document_type').default('datasheet').notNull(),
 		// тип документы. используется enum

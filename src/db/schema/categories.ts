@@ -16,7 +16,7 @@ export const categories = pgTable(
 	'categories',
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-		parentId: bigint('parent_id', { mode: 'number' }),
+		parentId: bigint('parent_id', { mode: 'bigint' }),
 		name: varchar({ length: 150 }).notNull(),
 		slug: varchar({ length: 150 }).notNull(),
 		description: text(),

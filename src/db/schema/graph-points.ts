@@ -20,7 +20,7 @@ export const graphPoints = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный ID точки
-		graphId: bigint('graph_id', { mode: 'number' }).notNull(),
+		graphId: bigint('graph_id', { mode: 'bigint' }).notNull(),
 		// ID графика, которому принадлежит точка
 		seriesName: varchar('series_name', { length: 255 }),
 		// Название серии данных.Это очень полезное поле, потому что один график может содержать несколько кривых

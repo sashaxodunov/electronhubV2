@@ -23,7 +23,7 @@ export const componentThermal = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный ID теплового параметра
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// ID компонента теплового параметра
 		name: varchar({ length: 255 }).notNull(),
 		// Название теплового параметра

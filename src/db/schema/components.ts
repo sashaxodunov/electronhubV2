@@ -25,11 +25,11 @@ export const components = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный идентификатор логического компонента
-		categoryId: bigint('category_id', { mode: 'number' }).notNull(),
+		categoryId: bigint('category_id', { mode: 'bigint' }).notNull(),
 		// Категория компонента
-		seriesId: bigint('series_id', { mode: 'number' }),
+		seriesId: bigint('series_id', { mode: 'bigint' }),
 		// Серия/семейство компонента
-		manufacturerId: bigint('manufacturer_id', { mode: 'number' }).notNull(),
+		manufacturerId: bigint('manufacturer_id', { mode: 'bigint' }).notNull(),
 		// Производитель компонента
 		name: varchar({ length: 255 }).notNull(),
 		// Человеческое название компонента

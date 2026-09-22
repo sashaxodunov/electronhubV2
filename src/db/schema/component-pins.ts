@@ -24,7 +24,7 @@ export const componentPins = pgTable(
 	'component_pins',
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		pinNumber: varchar('pin_number', { length: 20 }).notNull(),
 		// Номер физического вывода
 		pinName: varchar('pin_name', { length: 100 }).notNull(),

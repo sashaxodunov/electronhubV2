@@ -23,7 +23,7 @@ export const componentRelations = pgTable(
 	'component_relations',
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// Исходный компонент
 		relatedComponentId: bigint('related_component_id', {
 			mode: 'number'

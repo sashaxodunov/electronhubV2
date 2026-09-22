@@ -24,9 +24,9 @@ export const componentSeries = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный ID серии
-		manufacturerId: bigint('manufacturer_id', { mode: 'number' }),
+		manufacturerId: bigint('manufacturer_id', { mode: 'bigint' }),
 		// Производитель серии
-		categoryId: bigint('category_id', { mode: 'number' }),
+		categoryId: bigint('category_id', { mode: 'bigint' }),
 		// Категория к которой относится серия
 		name: varchar({ length: 255 }).notNull(),
 		// Название серии

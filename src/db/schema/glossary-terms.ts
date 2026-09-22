@@ -26,7 +26,7 @@ export const glossaryTerms = pgTable(
 		abbreviation: varchar({ length: 100 }),
 		shortDefinition: text('short_definition').notNull(),
 		definition: text(),
-		categoryId: bigint('category_id', { mode: 'number' }),
+		categoryId: bigint('category_id', { mode: 'bigint' }),
 		language: varchar({ length: 10 }).default('ru').notNull(),
 		metaTitle: varchar('meta_title', { length: 255 }),
 		metaDescription: text('meta_description'),

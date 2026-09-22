@@ -25,7 +25,7 @@ export const componentSpecifications = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный идентификатор характеристики
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// Ссылка на компонент
 		name: varchar({ length: 255 }).notNull(),
 		// Название характеристики

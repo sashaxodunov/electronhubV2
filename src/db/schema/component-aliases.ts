@@ -24,7 +24,7 @@ export const componentAliases = pgTable(
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
 		// Уникальный ID конкретной записи alias
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// Указывает какому компоненту принадлежит alias
 		alias: varchar({ length: 255 }).notNull(),
 		// Это непосредственно альтернативное обозначение компонента

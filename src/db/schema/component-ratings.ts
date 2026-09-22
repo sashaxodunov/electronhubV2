@@ -22,7 +22,7 @@ export const componentRatings = pgTable(
 	'component_ratings',
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-		componentId: bigint('component_id', { mode: 'number' }).notNull(),
+		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		name: varchar({ length: 255 }).notNull(),
 		// Название технической характеристики
 		symbol: varchar({ length: 100 }),

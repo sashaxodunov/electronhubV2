@@ -43,7 +43,7 @@ export const manufacturers = pgTable(
 			.defaultNow() // устанавливает значение только при создании записи.
 			.notNull(),
 		// Дата последнего добавления записи
-		successorId: bigint('successor_id', { mode: 'number' })
+		successorId: bigint('successor_id', { mode: 'bigint' })
 		// Она указывает на другого производителя из этой же таблицы
 	},
 	table => [
