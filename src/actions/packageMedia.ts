@@ -245,34 +245,33 @@ export async function updatePackageVariantMedia(
 	)
 }
 
-export async function deletePackageVariantMedia(
-	formData: FormData
-) {
-	const id = getId(
-		formData,
-		'id'
-	)
+export async function deletePackageVariantMedia(formData: FormData) {
+	const id = getId(formData, 'id')
+	const packageId = getId(formData, 'packageId')
+	const packageVariantId = getId(formData, 'packageVariantId')
 
-	const packageId = getId(
-		formData,
-		'packageId'
-	)
+	const [media] = await db
+		.select({
+			fileUrl: packageMedia.fileUrl
+		})
+		.from(packageMedia)
+		.where(eq(packageMedia.id, BigInt(id)))
+		.limit(1)
 
-	const packageVariantId = getId(
-		formData,
-		'packageVariantId'
-	)
+	if (media) {
+		await db
+			.delete(packageMedia)
+			.where(eq(packageMedia.id, BigInt(id)))
 
-	await db
-		.delete(packageMedia)
-		.where(
-			eq(
-				packageMedia.id,
-				BigInt(id)
-			)
-		)
+		try {
+			const { deleteFile } = await import('@/lib/storage')
 
-	redirect(
-		`/admin/packages/${packageId}/variants/${packageVariantId}`
-	)
+			await deleteFile(media.fileUrl)
+		} catch {
+			// Файл мог быть уже удалён.
+			// Запись из БД всё равно должна быть удалена.
+		}
+	}
+
+	redirect(`/admin/packages/${packageId}/variants/${packageVariantId}`)
 }

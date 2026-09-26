@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useMemo, useState } from 'react'
+import { storageUrl } from '@/lib/storage/url'
 
 type GalleryMedia = {
 	id: bigint
@@ -111,11 +112,12 @@ export default function PackageMediaGallery({ media }: Props) {
 									}
 								>
 									<Image
-										src={item.fileUrl}
+										src={storageUrl(item.fileUrl)}
 										alt={item.altText ?? item.title ?? 'Изображение корпуса'}
 										fill
 										sizes='96px'
 										className='object-contain p-2'
+										unoptimized
 									/>
 
 									{item.isPrimary && (
@@ -132,7 +134,7 @@ export default function PackageMediaGallery({ media }: Props) {
 					<div className='min-w-0'>
 						<div className='relative flex min-h-90 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50'>
 							<Image
-								src={selected.fileUrl}
+								src={storageUrl(selected.fileUrl)}
 								alt={
 									selected.altText ?? selected.title ?? 'Изображение корпуса'
 								}
@@ -140,6 +142,7 @@ export default function PackageMediaGallery({ media }: Props) {
 								height={900}
 								className='max-h-150 w-auto max-w-full object-contain p-8'
 								priority
+								unoptimized
 							/>
 						</div>
 

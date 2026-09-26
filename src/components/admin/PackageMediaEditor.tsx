@@ -10,6 +10,8 @@ import {
 	updatePackageVariantMedia
 } from '@/actions/packageMedia'
 
+import { storageUrl } from '@/lib/storage/url'
+
 type PackageMediaItem = {
 	id: bigint
 	mediaType: string
@@ -164,7 +166,10 @@ export default function PackageMediaEditor({
 			const uploadFormData = new FormData()
 
 			uploadFormData.append('file', file)
+
 			uploadFormData.append('packageVariantId', packageVariantId.toString())
+
+			uploadFormData.append('mediaType', form.mediaType)
 
 			const result = await uploadPackageMedia(uploadFormData)
 
@@ -564,7 +569,7 @@ export default function PackageMediaEditor({
 											{isImageMedia(item) ? (
 												<div className='relative h-16 w-16 overflow-hidden rounded-lg border border-gray-200 bg-gray-50'>
 													<Image
-														src={item.fileUrl}
+														src={storageUrl(item.fileUrl)}
 														alt={
 															item.altText ??
 															item.title ??

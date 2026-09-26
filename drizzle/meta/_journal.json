@@ -36,6 +36,13 @@
       "when": 1790004305273,
       "tag": "0004_awesome_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790452093749,
+      "tag": "0005_thin_sentinels",
+      "breakpoints": true
     }
   ]
 }

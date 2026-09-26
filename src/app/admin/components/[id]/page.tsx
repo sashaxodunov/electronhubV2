@@ -1,11 +1,14 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
+import ComponentMediaEditor from '@/components/admin/ComponentMediaEditor'
 
 import ComponentVariantsEditor from '@/components/admin/ComponentVariantsEditor'
 import { db } from '@/db'
 import {
+	assetType,
 	categories,
+	componentMedia,
 	componentSeries,
 	componentVariants,
 	components,
@@ -118,6 +121,31 @@ export default async function ComponentPage({
 		.from(packageVariants)
 		.innerJoin(packages, eq(packageVariants.packageId, packages.id))
 		.where(eq(packageVariants.isActive, true))
+
+	const media = (
+		await db
+			.select({
+				id: componentMedia.id,
+				assetType: componentMedia.assetType,
+				title: componentMedia.title,
+				fileUrl: componentMedia.fileUrl,
+				mimeType: componentMedia.mimeType,
+				fileSize: componentMedia.fileSize,
+				width: componentMedia.width,
+				height: componentMedia.height,
+				sortOrder: componentMedia.sortOrder,
+				isPrimary: componentMedia.isPrimary,
+				isActive: componentMedia.isActive,
+				altText: componentMedia.altText,
+				description: componentMedia.description
+			})
+			.from(componentMedia)
+			.where(eq(componentMedia.componentId, componentId))
+			.orderBy(componentMedia.sortOrder, componentMedia.id)
+	).map(item => ({
+		...item,
+		fileSize: item.fileSize !== null ? Number(item.fileSize) : null
+	}))
 
 	return (
 		<div className='mx-auto max-w-7xl'>
@@ -281,6 +309,14 @@ export default async function ComponentPage({
 						variants={variants}
 						packageVariants={packageVariantsList}
 					/>
+				) : tab === 'assets' ? (
+					<div className='p-6'>
+						<ComponentMediaEditor
+							componentId={Number(componentId)}
+							media={media}
+							assetTypes={assetType.enumValues}
+						/>
+					</div>
 				) : (
 					<div className='p-6'>
 						<div className='mb-6'>

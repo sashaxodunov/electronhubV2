@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { createComponent } from '@/actions/components'
-import { Link } from 'lucide-react'
+import Link from 'next/link'
+import { useState } from 'react'
 
 type SelectOption = {
 	id: number | bigint
@@ -15,12 +15,76 @@ type ComponentFormProps = {
 	series: SelectOption[]
 }
 
+function generateSlug(value: string): string {
+	const transliteration: Record<string, string> = {
+		а: 'a',
+		б: 'b',
+		в: 'v',
+		г: 'g',
+		д: 'd',
+		е: 'e',
+		ё: 'e',
+		ж: 'zh',
+		з: 'z',
+		и: 'i',
+		й: 'y',
+		к: 'k',
+		л: 'l',
+		м: 'm',
+		н: 'n',
+		о: 'o',
+		п: 'p',
+		р: 'r',
+		с: 's',
+		т: 't',
+		у: 'u',
+		ф: 'f',
+		х: 'h',
+		ц: 'ts',
+		ч: 'ch',
+		ш: 'sh',
+		щ: 'shch',
+		ъ: '',
+		ы: 'y',
+		ь: '',
+		э: 'e',
+		ю: 'yu',
+		я: 'ya'
+	}
+
+	return value
+		.toLowerCase()
+		.split('')
+		.map(char => transliteration[char] ?? char)
+		.join('')
+		.replace(/[^a-z0-9\s-]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-+|-+$/g, '')
+}
+
 export default function ComponentForm({
 	manufacturers,
 	categories,
 	series
 }: ComponentFormProps) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [name, setName] = useState('')
+	const [slug, setSlug] = useState('')
+	const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+
+	function handleNameChange(value: string) {
+		setName(value)
+
+		if (!slugManuallyEdited) {
+			setSlug(generateSlug(value))
+		}
+	}
+
+	function handleSlugChange(value: string) {
+		setSlugManuallyEdited(true)
+		setSlug(generateSlug(value))
+	}
 
 	return (
 		<form
@@ -62,8 +126,10 @@ export default function ComponentForm({
 							name='name'
 							type='text'
 							required
+							value={name}
+							onChange={event => handleNameChange(event.target.value)}
 							placeholder='Операционный усилитель'
-							className='w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						/>
 					</div>
 
@@ -82,7 +148,7 @@ export default function ComponentForm({
 							type='text'
 							required
 							placeholder='LM358'
-							className='w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						/>
 					</div>
 
@@ -100,8 +166,10 @@ export default function ComponentForm({
 							name='slug'
 							type='text'
 							required
+							value={slug}
+							onChange={event => handleSlugChange(event.target.value)}
 							placeholder='lm358'
-							className='w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						/>
 
 						<p className='mt-1.5 text-xs text-gray-400'>
@@ -123,7 +191,7 @@ export default function ComponentForm({
 							name='manufacturerId'
 							required
 							defaultValue=''
-							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						>
 							<option
 								value=''
@@ -157,7 +225,7 @@ export default function ComponentForm({
 							name='categoryId'
 							required
 							defaultValue=''
-							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						>
 							<option
 								value=''
@@ -190,7 +258,7 @@ export default function ComponentForm({
 							id='seriesId'
 							name='seriesId'
 							defaultValue=''
-							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						>
 							<option value=''>Без серии</option>
 
@@ -219,7 +287,7 @@ export default function ComponentForm({
 							name='function'
 							type='text'
 							placeholder='Двойной операционный усилитель'
-							className='w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						/>
 					</div>
 
@@ -237,7 +305,7 @@ export default function ComponentForm({
 							name='shortDescription'
 							rows={3}
 							placeholder='Краткое описание компонента для каталога...'
-							className='w-full resize-y rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						/>
 					</div>
 
@@ -255,7 +323,7 @@ export default function ComponentForm({
 							name='description'
 							rows={7}
 							placeholder='Подробное техническое описание компонента...'
-							className='w-full resize-y rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+							className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
 						/>
 					</div>
 				</div>

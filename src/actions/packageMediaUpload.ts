@@ -1,15 +1,21 @@
 'use server'
 
-import 'server-only'
-
-import { mkdir, writeFile } from 'fs/promises'
-import path from 'path'
+import { randomUUID } from 'node:crypto'
 
 import { eq } from 'drizzle-orm'
 import { imageSize } from 'image-size'
 
 import { db } from '@/db'
-import { packageVariants } from '@/db/schema'
+import {
+	packageMediaType,
+	packageVariants
+} from '@/db/schema'
+import {
+	packageVariantPath,
+	saveFile
+} from '@/lib/storage'
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024
 
 const ALLOWED_TYPES = new Set([
 	'image/png',
@@ -30,9 +36,10 @@ const ALLOWED_EXTENSIONS = new Set([
 	'.pdf'
 ])
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024
-
-function getRequiredString(formData: FormData, name: string) {
+function getRequiredString(
+	formData: FormData,
+	name: string
+): string {
 	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
@@ -42,41 +49,121 @@ function getRequiredString(formData: FormData, name: string) {
 	return value
 }
 
-function getVariantId(formData: FormData) {
-	const value = getRequiredString(formData, 'packageVariantId')
+function getVariantId(
+	formData: FormData
+): number {
+	const value = getRequiredString(
+		formData,
+		'packageVariantId'
+	)
+
 	const id = Number(value)
 
 	if (!Number.isSafeInteger(id) || id <= 0) {
-		throw new Error('Некорректный ID варианта корпуса')
+		throw new Error(
+			'Некорректный ID варианта корпуса'
+		)
 	}
 
 	return id
 }
 
-function sanitizeName(value: string) {
-	return value
-		.toLowerCase()
-		.trim()
-		.replace(/[^a-zа-яё0-9_-]/gi, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-+|-+$/g, '')
-}
+function getMediaType(
+	formData: FormData
+) {
+	const value = getRequiredString(
+		formData,
+		'mediaType'
+	)
 
-function getExtension(file: File) {
-	const extension = path.extname(file.name).toLowerCase()
-
-	if (!ALLOWED_EXTENSIONS.has(extension)) {
+	if (
+		!packageMediaType.enumValues.includes(
+			value as (typeof packageMediaType.enumValues)[number]
+		)
+	) {
 		throw new Error(
-			`Недопустимое расширение файла: ${extension || 'отсутствует'}`
+			`Недопустимый тип медиа: ${value}`
 		)
 	}
 
-	return extension
+	return value as (typeof packageMediaType.enumValues)[number]
 }
 
-function getDimensions(buffer: Buffer, mimeType: string, extension: string) {
-	// PDF не является изображением
-	if (mimeType === 'application/pdf' || extension === '.pdf') {
+function sanitizeFileName(
+	fileName: string
+): string {
+	const withoutPath = fileName
+		.replace(/\\/g, '/')
+		.split('/')
+		.pop() ?? 'file'
+
+	const extensionIndex =
+		withoutPath.lastIndexOf('.')
+
+	const name =
+		extensionIndex > 0
+			? withoutPath.slice(0, extensionIndex)
+			: withoutPath
+
+	return (
+		name
+			.normalize('NFKD')
+			.replace(/[^\w.-]+/g, '-')
+			.replace(/-+/g, '-')
+			.replace(/^-+|-+$/g, '')
+			.toLowerCase()
+			.slice(0, 100) || 'file'
+	)
+}
+
+function getExtension(
+	fileName: string
+): string {
+	const dotIndex = fileName.lastIndexOf('.')
+
+	if (dotIndex === -1) {
+		return ''
+	}
+
+	return fileName
+		.slice(dotIndex)
+		.toLowerCase()
+}
+
+function getStorageFolder(
+	mediaType: string
+): string {
+	switch (mediaType) {
+		case 'image':
+		case 'svg':
+			return 'images'
+
+		case 'drawing':
+			return 'drawings'
+
+		case '3d':
+		case 'model':
+			return 'models'
+
+		case 'pdf':
+		case 'datasheet':
+		case 'other':
+		default:
+			return 'documents'
+	}
+}
+
+function getDimensions(
+	buffer: Buffer,
+	mimeType: string
+): {
+	width: number | null
+	height: number | null
+} {
+	if (
+		mimeType === 'image/svg+xml' ||
+		mimeType === 'application/pdf'
+	) {
 		return {
 			width: null,
 			height: null
@@ -87,13 +174,10 @@ function getDimensions(buffer: Buffer, mimeType: string, extension: string) {
 		const dimensions = imageSize(buffer)
 
 		return {
-			width: typeof dimensions.width === 'number' ? dimensions.width : null,
-
-			height: typeof dimensions.height === 'number' ? dimensions.height : null
+			width: dimensions.width ?? null,
+			height: dimensions.height ?? null
 		}
 	} catch {
-		// Если библиотека не смогла определить размеры,
-		// файл всё равно можно сохранить.
 		return {
 			width: null,
 			height: null
@@ -101,122 +185,110 @@ function getDimensions(buffer: Buffer, mimeType: string, extension: string) {
 	}
 }
 
-export async function uploadPackageMedia(formData: FormData) {
-	const packageVariantId = getVariantId(formData)
+export async function uploadPackageMedia(
+	formData: FormData
+) {
+	const packageVariantId =
+		getVariantId(formData)
 
-	const file = formData.get('file')
+	const mediaType =
+		getMediaType(formData)
 
-	if (!(file instanceof File)) {
+	const fileValue =
+		formData.get('file')
+
+	if (!(fileValue instanceof File)) {
 		throw new Error('Файл не выбран')
 	}
 
-	if (file.size <= 0) {
+	if (fileValue.size <= 0) {
 		throw new Error('Файл пустой')
 	}
 
-	if (file.size > MAX_FILE_SIZE) {
-		throw new Error('Размер файла не должен превышать 20 МБ')
+	if (fileValue.size > MAX_FILE_SIZE) {
+		throw new Error(
+			'Размер файла не должен превышать 20 МБ'
+		)
 	}
 
-	const extension = getExtension(file)
+	const extension =
+		getExtension(fileValue.name)
 
-	if (!ALLOWED_TYPES.has(file.type)) {
-		throw new Error(`Недопустимый тип файла: ${file.type || 'неизвестный'}`)
+	if (!ALLOWED_EXTENSIONS.has(extension)) {
+		throw new Error(
+			`Недопустимое расширение файла: ${extension || 'неизвестно'
+			}`
+		)
 	}
 
-	/*
-	 * Получаем slug варианта корпуса непосредственно
-	 * из базы данных.
-	 *
-	 * Не доверяем packageSlug, переданному браузером.
-	 */
+	if (!ALLOWED_TYPES.has(fileValue.type)) {
+		throw new Error(
+			`Недопустимый тип файла: ${fileValue.type || 'неизвестно'
+			}`
+		)
+	}
+
 	const [variant] = await db
 		.select({
-			slug: packageVariants.slug
+			id: packageVariants.id
 		})
 		.from(packageVariants)
-		.where(eq(packageVariants.id, BigInt(packageVariantId)))
+		.where(
+			eq(
+				packageVariants.id,
+				BigInt(packageVariantId)
+			)
+		)
 		.limit(1)
 
 	if (!variant) {
-		throw new Error('Вариант корпуса не найден')
+		throw new Error(
+			'Вариант корпуса не найден'
+		)
 	}
 
-	const variantSlug = sanitizeName(variant.slug)
-
-	if (!variantSlug) {
-		throw new Error('У варианта корпуса отсутствует корректный slug')
-	}
-
-	/*
-	 * Читаем файл в память.
-	 */
-	const buffer = Buffer.from(await file.arrayBuffer())
-
-	/*
-	 * Автоматически определяем размеры изображения.
-	 *
-	 * Для PDF width/height будут null.
-	 */
-	const { width, height } = getDimensions(buffer, file.type, extension)
-
-	/*
-	 * Безопасное имя исходного файла.
-	 */
-	const originalName = path
-		.basename(file.name, extension)
-		.replace(/[^a-zа-яё0-9_-]/gi, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-+|-+$/g, '')
-		.toLowerCase()
-
-	const safeName = originalName || 'media'
-
-	/*
-	 * Добавляем timestamp, чтобы имена файлов
-	 * не конфликтовали.
-	 */
-	const uniqueName = `${Date.now()}-${safeName}${extension}`
-
-	/*
-	 * Каталог:
-	 *
-	 * public/
-	 * └── media/
-	 *     └── packages/
-	 *         └── <variant-slug>/
-	 */
-	const relativeDirectory = path.join('media', 'packages', variantSlug)
-
-	const absoluteDirectory = path.join(
-		process.cwd(),
-		'public',
-		relativeDirectory
+	const buffer = Buffer.from(
+		await fileValue.arrayBuffer()
 	)
 
-	await mkdir(absoluteDirectory, {
-		recursive: true
-	})
+	const {
+		width,
+		height
+	} = getDimensions(
+		buffer,
+		fileValue.type
+	)
 
-	/*
-	 * Полный путь к файлу.
-	 */
-	const absolutePath = path.join(absoluteDirectory, uniqueName)
+	const safeName =
+		sanitizeFileName(fileValue.name)
 
-	await writeFile(absolutePath, buffer)
+	const uniqueName =
+		`${Date.now()}-${randomUUID()}-${safeName}${extension}`
 
-	/*
-	 * URL для браузера.
-	 */
+	const folder =
+		getStorageFolder(mediaType)
+
 	const fileUrl =
-		'/' + path.join(relativeDirectory, uniqueName).replace(/\\/g, '/')
+		packageVariantPath(
+			BigInt(packageVariantId),
+			folder,
+			uniqueName
+		)
+
+	await saveFile(
+		fileUrl,
+		buffer
+	)
 
 	return {
 		fileUrl,
-		mimeType: file.type || null,
-		fileSize: file.size,
+		mimeType:
+			fileValue.type || null,
+		fileSize:
+			fileValue.size,
 		width,
 		height,
-		originalName: file.name
+		originalName:
+			fileValue.name
 	}
 }

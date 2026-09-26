@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import { manufacturers, categories, componentSeries } from '@/db/schema'
+import { categories, componentSeries, manufacturers } from '@/db/schema'
 
 import ComponentForm from '@/components/admin/ComponentForm'
 
@@ -30,9 +30,7 @@ export default async function NewComponentPage() {
 	return (
 		<div className='mx-auto max-w-6xl'>
 			<div className='mb-8'>
-				<h1 className='text-2xl font-semibold text-gray-900'>
-					Новый компонент
-				</h1>
+				<h1 className='text-2xl font-semibold text-accent'>Новый компонент</h1>
 
 				<p className='mt-1 text-sm text-gray-500'>
 					Добавление электронного компонента в каталог
