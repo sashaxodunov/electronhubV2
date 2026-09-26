@@ -1,43 +1,100 @@
 'use server'
 
+import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
+
 import { db } from '@/db'
 import { componentVariants } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+
+function getRequiredBigInt(
+	formData: FormData,
+	name: string,
+	message: string
+): bigint {
+	const value = String(formData.get(name) ?? '').trim()
+
+	if (!value || !/^\d+$/.test(value)) {
+		throw new Error(message)
+	}
+
+	const id = BigInt(value)
+
+	if (id <= BigInt(0)) {
+		throw new Error(message)
+	}
+
+	return id
+}
+
+function getOptionalBigInt(
+	formData: FormData,
+	name: string
+): bigint | null {
+	const value = String(formData.get(name) ?? '').trim()
+
+	if (!value) {
+		return null
+	}
+
+	if (!/^\d+$/.test(value)) {
+		throw new Error(`Некорректный ID: ${name}`)
+	}
+
+	const id = BigInt(value)
+
+	if (id <= BigInt(0)) {
+		throw new Error(`Некорректный ID: ${name}`)
+	}
+
+	return id
+}
 
 export async function createComponentVariant(formData: FormData) {
-	const componentId = Number(formData.get('componentId'))
+	const componentId = getRequiredBigInt(
+		formData,
+		'componentId',
+		'Не указан компонент'
+	)
 
-	const packageVariantValue = formData.get('packageVariantId')
+	const packageVariantId = getOptionalBigInt(
+		formData,
+		'packageVariantId'
+	)
 
-	const packageVariantId =
-		packageVariantValue && String(packageVariantValue).trim() !== ''
-			? Number(packageVariantValue)
-			: null
+	const designation = String(
+		formData.get('designation') ?? ''
+	).trim()
 
-	const designation = String(formData.get('designation') ?? '').trim()
+	const slug = String(
+		formData.get('slug') ?? ''
+	).trim()
 
-	const slug = String(formData.get('slug') ?? '').trim()
+	const marking = String(
+		formData.get('marking') ?? ''
+	).trim()
 
-	const marking = String(formData.get('marking') ?? '').trim()
+	const description = String(
+		formData.get('description') ?? ''
+	).trim()
 
-	const description = String(formData.get('description') ?? '').trim()
+	const process = String(
+		formData.get('process') ?? ''
+	).trim()
 
-	const process = String(formData.get('process') ?? '').trim()
+	const packing = String(
+		formData.get('packing') ?? ''
+	).trim()
 
-	const packing = String(formData.get('packing') ?? '').trim()
+	const operatingTempMin = String(
+		formData.get('operatingTempMin') ?? ''
+	).trim()
 
-	const operatingTempMin = String(formData.get('operatingTempMin') ?? '').trim()
-
-	const operatingTempMax = String(formData.get('operatingTempMax') ?? '').trim()
+	const operatingTempMax = String(
+		formData.get('operatingTempMax') ?? ''
+	).trim()
 
 	const isPrimary = formData.get('isPrimary') === 'true'
-
 	const isActive = formData.get('isActive') === 'true'
-
-	if (!componentId) {
-		throw new Error('Не указан компонент')
-	}
 
 	if (!designation) {
 		throw new Error('Не указано обозначение варианта')
@@ -62,18 +119,31 @@ export async function createComponentVariant(formData: FormData) {
 		isActive
 	})
 
-	redirect(`/admin/components/${componentId}?tab=variants`)
+	redirect(
+		`/admin/components/${componentId}?tab=variants`
+	)
 }
 
-export async function deleteComponentVariant(formData: FormData) {
-	const id = Number(formData.get('id'))
-	const componentId = Number(formData.get('componentId'))
+export async function deleteComponentVariant(
+	formData: FormData
+) {
+	const id = getRequiredBigInt(
+		formData,
+		'id',
+		'Некорректный ID варианта'
+	)
 
-	if (!id || !componentId) {
-		throw new Error('Некорректные параметры')
-	}
+	const componentId = getRequiredBigInt(
+		formData,
+		'componentId',
+		'Некорректный ID компонента'
+	)
 
-	await db.delete(componentVariants).where(eq(componentVariants.id, BigInt(id)))
+	await db
+		.delete(componentVariants)
+		.where(eq(componentVariants.id, id))
 
-	redirect(`/admin/components/${componentId}?tab=variants`)
+	redirect(
+		`/admin/components/${componentId}?tab=variants`
+	)
 }

@@ -20,6 +20,8 @@
 		"electomechanical",
 		"electronhub",
 		"fkey",
-		"trgm"
+		"pkey",
+		"trgm",
+		"tsvector"
 	]
 }

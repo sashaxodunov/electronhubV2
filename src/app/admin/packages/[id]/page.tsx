@@ -35,56 +35,37 @@ export default async function PackagePage({ params }: PageProps) {
 		notFound()
 	}
 
-	/*
-	 * packages.id хранится в TypeScript как bigint,
-	 * а packageVariants.packageId — как number,
-	 * потому что в схеме используется mode: 'number'.
-	 */
-	const packageIdNumber = Number(pkg.id)
-
 	const variants = await db
 		.select({
 			id: packageVariants.id,
 			name: packageVariants.name,
 			slug: packageVariants.slug,
 			manufacturer: packageVariants.manufacturer,
-
 			pinCount: packageVariants.pinCount,
-
 			pitchMm: packageVariants.pitchMm,
 			lengthMm: packageVariants.lengthMm,
 			widthMm: packageVariants.widthMm,
 			heightMm: packageVariants.heightMm,
-
 			bodyLengthMm: packageVariants.bodyLengthMm,
 			bodyWidthMm: packageVariants.bodyWidthMm,
-
 			leadLengthMm: packageVariants.leadLengthMm,
 			leadWidthMm: packageVariants.leadWidthMm,
-
 			thermalPad: packageVariants.thermalPad,
-
 			description: packageVariants.description,
-
 			isActive: packageVariants.isActive,
-
 			variantCode: packageVariants.variantCode,
 			standardCode: packageVariants.standardCode,
 			bodyShape: packageVariants.bodyShape,
-
 			pitchXMm: packageVariants.pitchXMm,
 			pitchYMm: packageVariants.pitchYMm,
-
 			terminalWidthMm: packageVariants.terminalWidthMm,
 			terminalLengthMm: packageVariants.terminalLengthMm,
-
 			exposedPadLengthMm: packageVariants.exposedPadLengthMm,
 			exposedPadWidthMm: packageVariants.exposedPadWidthMm,
-
 			packageDrawingUrl: packageVariants.packageDrawingUrl
 		})
 		.from(packageVariants)
-		.where(eq(packageVariants.packageId, packageIdNumber))
+		.where(eq(packageVariants.packageId, packageId))
 
 	return (
 		<div className='space-y-6'>
@@ -177,7 +158,7 @@ export default async function PackagePage({ params }: PageProps) {
 
 			<div className='rounded-lg border border-gray-200 bg-white p-5'>
 				<PackageVariantsEditor
-					packageId={packageIdNumber}
+					packageId={packageId}
 					variants={variants}
 				/>
 			</div>

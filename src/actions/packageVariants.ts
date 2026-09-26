@@ -7,136 +7,151 @@ import { db } from '@/db'
 import { packageVariants } from '@/db/schema'
 
 function getString(formData: FormData, name: string) {
-	const value = String(formData.get(name) ?? '').trim()
-	return value || null
+  const value = String(formData.get(name) ?? '').trim()
+
+  return value || null
 }
 
 function getNumber(formData: FormData, name: string) {
-	const value = String(formData.get(name) ?? '').trim()
+  const value = String(formData.get(name) ?? '').trim()
 
-	if (!value) {
-		return null
-	}
+  if (!value) {
+    return null
+  }
 
-	const number = Number(value)
+  const number = Number(value)
 
-	if (!Number.isFinite(number)) {
-		throw new Error(`Некорректное значение поля ${name}`)
-	}
+  if (!Number.isFinite(number)) {
+    throw new Error(`Некорректное значение поля ${name}`)
+  }
 
-	return number
+  return number
 }
 
-function getId(formData: FormData, name: string) {
-	const value = String(formData.get(name) ?? '')
-	const id = Number(value)
+function getId(formData: FormData, name: string): bigint {
+  const value = String(formData.get(name) ?? '').trim()
 
-	if (!Number.isSafeInteger(id) || id <= 0) {
-		throw new Error(`Некорректный ID: ${name}`)
-	}
+  if (!/^\d+$/.test(value)) {
+    throw new Error(`Некорректный ID: ${name}`)
+  }
 
-	return id
+  const id = BigInt(value)
+
+  if (id <= BigInt(0)) {
+    throw new Error(`Некорректный ID: ${name}`)
+  }
+
+  return id
 }
 
 function getVariantValues(formData: FormData) {
-	const name = String(formData.get('name') ?? '').trim()
-	const slug = String(formData.get('slug') ?? '').trim()
+  const name = String(formData.get('name') ?? '').trim()
+  const slug = String(formData.get('slug') ?? '').trim()
 
-	if (!name) {
-		throw new Error('Название варианта обязательно')
-	}
+  if (!name) {
+    throw new Error('Название варианта обязательно')
+  }
 
-	if (!slug) {
-		throw new Error('Slug варианта обязателен')
-	}
+  if (!slug) {
+    throw new Error('Slug варианта обязателен')
+  }
 
-	return {
-		name,
-		slug,
-		manufacturer: getString(formData, 'manufacturer'),
-		pinCount: getNumber(formData, 'pinCount'),
+  return {
+    name,
+    slug,
 
-		pitchMm: getNumber(formData, 'pitchMm')?.toString() ?? null,
+    manufacturer: getString(formData, 'manufacturer'),
 
-		lengthMm: getNumber(formData, 'lengthMm')?.toString() ?? null,
-		widthMm: getNumber(formData, 'widthMm')?.toString() ?? null,
-		heightMm: getNumber(formData, 'heightMm')?.toString() ?? null,
+    pinCount: getNumber(formData, 'pinCount'),
 
-		bodyLengthMm: getNumber(formData, 'bodyLengthMm')?.toString() ?? null,
+    pitchMm: getNumber(formData, 'pitchMm')?.toString() ?? null,
+    lengthMm: getNumber(formData, 'lengthMm')?.toString() ?? null,
+    widthMm: getNumber(formData, 'widthMm')?.toString() ?? null,
+    heightMm: getNumber(formData, 'heightMm')?.toString() ?? null,
 
-		bodyWidthMm: getNumber(formData, 'bodyWidthMm')?.toString() ?? null,
+    bodyLengthMm:
+      getNumber(formData, 'bodyLengthMm')?.toString() ?? null,
 
-		leadLengthMm: getNumber(formData, 'leadLengthMm')?.toString() ?? null,
+    bodyWidthMm:
+      getNumber(formData, 'bodyWidthMm')?.toString() ?? null,
 
-		leadWidthMm: getNumber(formData, 'leadWidthMm')?.toString() ?? null,
+    leadLengthMm:
+      getNumber(formData, 'leadLengthMm')?.toString() ?? null,
 
-		thermalPad: formData.get('thermalPad') === 'on',
+    leadWidthMm:
+      getNumber(formData, 'leadWidthMm')?.toString() ?? null,
 
-		description: getString(formData, 'description'),
+    thermalPad: formData.get('thermalPad') === 'on',
 
-		isActive: formData.get('isActive') === 'on',
+    description: getString(formData, 'description'),
 
-		variantCode: getString(formData, 'variantCode'),
-		standardCode: getString(formData, 'standardCode'),
-		bodyShape: getString(formData, 'bodyShape'),
+    isActive: formData.get('isActive') === 'on',
 
-		pitchXMm: getNumber(formData, 'pitchXMm')?.toString() ?? null,
+    variantCode: getString(formData, 'variantCode'),
 
-		pitchYMm: getNumber(formData, 'pitchYMm')?.toString() ?? null,
+    standardCode: getString(formData, 'standardCode'),
 
-		terminalWidthMm: getNumber(formData, 'terminalWidthMm')?.toString() ?? null,
+    bodyShape: getString(formData, 'bodyShape'),
 
-		terminalLengthMm:
-			getNumber(formData, 'terminalLengthMm')?.toString() ?? null,
+    pitchXMm:
+      getNumber(formData, 'pitchXMm')?.toString() ?? null,
 
-		exposedPadLengthMm:
-			getNumber(formData, 'exposedPadLengthMm')?.toString() ?? null,
+    pitchYMm:
+      getNumber(formData, 'pitchYMm')?.toString() ?? null,
 
-		exposedPadWidthMm:
-			getNumber(formData, 'exposedPadWidthMm')?.toString() ?? null
-	}
+    terminalWidthMm:
+      getNumber(formData, 'terminalWidthMm')?.toString() ?? null,
+
+    terminalLengthMm:
+      getNumber(formData, 'terminalLengthMm')?.toString() ?? null,
+
+    exposedPadLengthMm:
+      getNumber(formData, 'exposedPadLengthMm')?.toString() ?? null,
+
+    exposedPadWidthMm:
+      getNumber(formData, 'exposedPadWidthMm')?.toString() ?? null
+  }
 }
 
 export async function createPackageVariant(formData: FormData) {
-	const packageIdValue = String(formData.get('packageId') ?? '')
-	const packageId = Number(packageIdValue)
+  const packageId = getId(formData, 'packageId')
 
-	if (!Number.isSafeInteger(packageId) || packageId <= 0) {
-		throw new Error('Некорректный ID корпуса')
-	}
+  const values = getVariantValues(formData)
 
-	const values = getVariantValues(formData)
+  await db
+    .insert(packageVariants)
+    .values({
+      packageId,
+      ...values
+    })
 
-	await db.insert(packageVariants).values({
-		packageId,
-		...values
-	})
-
-	redirect(`/admin/packages/${packageId}`)
+  redirect(`/admin/packages/${packageId}`)
 }
 
 export async function updatePackageVariant(formData: FormData) {
-	const id = getId(formData, 'id')
-	const packageId = getId(formData, 'packageId')
+  const id = getId(formData, 'id')
+  const packageId = getId(formData, 'packageId')
 
-	const values = getVariantValues(formData)
+  const values = getVariantValues(formData)
 
-	await db
-		.update(packageVariants)
-		.set({
-			...values,
-			updatedAt: new Date().toISOString()
-		})
-		.where(eq(packageVariants.id, BigInt(id)))
+  await db
+    .update(packageVariants)
+    .set({
+      ...values,
+      updatedAt: new Date().toISOString()
+    })
+    .where(eq(packageVariants.id, id))
 
-	redirect(`/admin/packages/${packageId}`)
+  redirect(`/admin/packages/${packageId}`)
 }
 
 export async function deletePackageVariant(formData: FormData) {
-	const id = getId(formData, 'id')
-	const packageId = getId(formData, 'packageId')
+  const id = getId(formData, 'id')
+  const packageId = getId(formData, 'packageId')
 
-	await db.delete(packageVariants).where(eq(packageVariants.id, BigInt(id)))
+  await db
+    .delete(packageVariants)
+    .where(eq(packageVariants.id, id))
 
-	redirect(`/admin/packages/${packageId}`)
+  redirect(`/admin/packages/${packageId}`)
 }

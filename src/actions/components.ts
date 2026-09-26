@@ -1,31 +1,86 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+
 import { db } from '@/db'
 import { components } from '@/db/schema'
+
+function getRequiredBigInt(
+	formData: FormData,
+	name: string,
+	message: string
+): bigint {
+	const value = String(formData.get(name) ?? '').trim()
+
+	if (!value || !/^\d+$/.test(value)) {
+		throw new Error(message)
+	}
+
+	const id = BigInt(value)
+
+	if (id <= BigInt(0)) {
+		throw new Error(message)
+	}
+
+	return id
+}
+
+function getOptionalBigInt(
+	formData: FormData,
+	name: string
+): bigint | null {
+	const value = String(formData.get(name) ?? '').trim()
+
+	if (!value) {
+		return null
+	}
+
+	if (!/^\d+$/.test(value)) {
+		throw new Error(`Некорректное значение поля ${name}`)
+	}
+
+	const id = BigInt(value)
+
+	if (id <= BigInt(0)) {
+		throw new Error(`Некорректное значение поля ${name}`)
+	}
+
+	return id
+}
 
 export async function createComponent(formData: FormData) {
 	const name = String(formData.get('name') ?? '').trim()
 	const designation = String(formData.get('designation') ?? '').trim()
-
 	const slug = String(formData.get('slug') ?? '').trim()
 
-	const manufacturerId = Number(formData.get('manufacturerId'))
+	const manufacturerId = getRequiredBigInt(
+		formData,
+		'manufacturerId',
+		'Не выбран производитель'
+	)
 
-	const categoryId = Number(formData.get('categoryId'))
+	const categoryId = getRequiredBigInt(
+		formData,
+		'categoryId',
+		'Не выбрана категория'
+	)
 
-	const seriesValue = formData.get('seriesId')
+	const seriesId = getOptionalBigInt(
+		formData,
+		'seriesId'
+	)
 
-	const seriesId =
-		seriesValue && String(seriesValue).trim() !== ''
-			? Number(seriesValue)
-			: null
+	const functionValue = String(
+		formData.get('function') ?? ''
+	).trim()
 
-	const functionValue = String(formData.get('function') ?? '').trim()
+	const shortDescription = String(
+		formData.get('shortDescription') ?? ''
+	).trim()
 
-	const shortDescription = String(formData.get('shortDescription') ?? '').trim()
-
-	const description = String(formData.get('description') ?? '').trim()
+	const description = String(
+		formData.get('description') ?? ''
+	).trim()
 
 	const isActive = formData.get('isActive') === 'true'
 
@@ -39,14 +94,6 @@ export async function createComponent(formData: FormData) {
 
 	if (!slug) {
 		throw new Error('Не указан slug компонента')
-	}
-
-	if (!manufacturerId) {
-		throw new Error('Не выбран производитель')
-	}
-
-	if (!categoryId) {
-		throw new Error('Не выбрана категория')
 	}
 
 	const [component] = await db
@@ -66,6 +113,10 @@ export async function createComponent(formData: FormData) {
 		.returning({
 			id: components.id
 		})
+
+	if (!component) {
+		throw new Error('Не удалось создать компонент')
+	}
 
 	redirect(`/admin/components/${component.id}`)
 }

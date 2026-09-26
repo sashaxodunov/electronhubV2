@@ -1,10 +1,3 @@
-/**
- * datasheets — это таблица технических документов, привязанных к компонентам.
- * В отличие от componentAssets, здесь хранятся именно документы с их
- * метаданными: ревизия, дата документа, язык, количество страниц, источник
- * и т. д.
- */
-
 import {
 	bigint,
 	bigserial,
@@ -19,43 +12,89 @@ import {
 	uniqueIndex,
 	varchar
 } from 'drizzle-orm/pg-core'
-import { documentType } from './enums'
+
 import { components } from './components'
+import { documentType } from './enums'
 
 export const datasheets = pgTable(
 	'datasheets',
 	{
 		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-		// Универсальный идентификатор документа
-		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
-		// указывает какому компоненту принадлежит документ
+
+		// Компонент, которому принадлежит документ
+		componentId: bigint('component_id', {
+			mode: 'bigint'
+		}).notNull(),
+
+		// Тип документа
 		documentType: documentType('document_type').default('datasheet').notNull(),
-		// тип документы. используется enum
+
+		// Название документа
+		// Например: LM358 Low-Power Dual Operational Amplifiers
 		title: varchar({ length: 500 }).notNull(),
-		// Название документа. Например:
-		// LM358 Low-Power Dual Operational Amplifiers
-		filePath: varchar('file_path', { length: 1000 }).notNull(),
-		// путь к файлу документа
-		fileName: varchar('file_name', { length: 255 }),
-		// имя файла Например
-		// LM358.pdf,  LM358_Rev_H.pdf, LM358-datasheet.pdf
-		revision: varchar({ length: 100 }),
-		// ревизия документа
+
+		// Ключ файла в Object Storage
+		// Например:
+		// components/1842/documents/datasheet/LM358_Rev_H.pdf
+		filePath: varchar('file_path', {
+			length: 1000
+		}).notNull(),
+
+		// Оригинальное имя загруженного файла
+		// Например: LM358_Rev_H.pdf
+		fileName: varchar('file_name', {
+			length: 255
+		}),
+
+		// MIME-тип файла
+		// Например: application/pdf
+		mimeType: varchar('mime_type', {
+			length: 100
+		}),
+
+		// Размер файла в байтах
+		fileSize: bigint('file_size', {
+			mode: 'bigint'
+		}),
+
+		// Ревизия документа
+		// Например: Rev. H
+		revision: varchar({
+			length: 100
+		}),
+
+		// Дата выпуска документа
 		documentDate: date('document_date'),
-		// дата выпуск самого документа
-		language: varchar({ length: 20 }).default('en'),
-		// язык документа
+
+		// Язык документа
+		// Например: en, ru
+		language: varchar({
+			length: 20
+		})
+			.default('en')
+			.notNull(),
+
+		// Количество страниц
 		pageCount: integer('page_count'),
-		// количество страниц PDF
-		sourceUrl: varchar('source_url', { length: 1000 }),
-		// URL оригинального документа на сайте производителя
+
+		// Оригинальный URL документа на сайте производителя
+		sourceUrl: varchar('source_url', {
+			length: 1000
+		}),
+
+		// Дополнительное описание
 		description: text(),
-		// дополнительное описание документа
+
+		// Основной документ компонента
 		isPrimary: boolean('is_primary').default(false).notNull(),
-		// определяет основной документ для компонента
+
+		// Активен ли документ
 		isActive: boolean('is_active').default(true).notNull(),
-		// позволяет сделать документ неактивным, не удаляя его с базы
-		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+
+		createdAt: timestamp('created_at', {
+			withTimezone: true,
+			mode: 'string'
+		})
 			.defaultNow()
 			.notNull()
 	},
@@ -65,11 +104,15 @@ export const datasheets = pgTable(
 			'btree',
 			table.componentId.asc().nullsLast().op('int8_ops')
 		),
+
+		index('idx_datasheets_document_type').using('btree', table.documentType),
+
 		uniqueIndex('uq_datasheets_component_file').using(
 			'btree',
 			table.componentId.asc().nullsLast().op('int8_ops'),
 			table.filePath.asc().nullsLast().op('text_ops')
 		),
+
 		foreignKey({
 			columns: [table.componentId],
 			foreignColumns: [components.id],

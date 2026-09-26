@@ -38,7 +38,7 @@ type PackageVariant = {
 }
 
 type Props = {
-	packageId: number
+	packageId: bigint
 	variants: PackageVariant[]
 }
 
@@ -226,7 +226,7 @@ export default function PackageVariantsEditor({ packageId, variants }: Props) {
 					<input
 						type='hidden'
 						name='packageId'
-						value={packageId}
+						value={packageId.toString()}
 					/>
 
 					{editingId !== null && (
@@ -656,7 +656,7 @@ export default function PackageVariantsEditor({ packageId, variants }: Props) {
 													<input
 														type='hidden'
 														name='packageId'
-														value={packageId}
+														value={packageId.toString()}
 													/>
 
 													<button

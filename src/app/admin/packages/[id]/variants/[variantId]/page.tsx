@@ -47,29 +47,34 @@ export default async function PackageVariantPage({ params }: Props) {
 		notFound()
 	}
 
-	if (variant.packageId !== Number(pkg.id)) {
+	if (variant.packageId !== pkg.id) {
 		notFound()
 	}
 
-	const media = await db
-		.select({
-			id: packageMedia.id,
-			mediaType: packageMedia.mediaType,
-			title: packageMedia.title,
-			fileUrl: packageMedia.fileUrl,
-			mimeType: packageMedia.mimeType,
-			fileSize: packageMedia.fileSize,
-			width: packageMedia.width,
-			height: packageMedia.height,
-			sortOrder: packageMedia.sortOrder,
-			isPrimary: packageMedia.isPrimary,
-			isActive: packageMedia.isActive,
-			altText: packageMedia.altText,
-			description: packageMedia.description
-		})
-		.from(packageMedia)
-		.where(eq(packageMedia.packageVariantId, Number(variant.id)))
-		.orderBy(packageMedia.sortOrder, packageMedia.id)
+	const media = (
+		await db
+			.select({
+				id: packageMedia.id,
+				mediaType: packageMedia.mediaType,
+				title: packageMedia.title,
+				fileUrl: packageMedia.fileUrl,
+				mimeType: packageMedia.mimeType,
+				fileSize: packageMedia.fileSize,
+				width: packageMedia.width,
+				height: packageMedia.height,
+				sortOrder: packageMedia.sortOrder,
+				isPrimary: packageMedia.isPrimary,
+				isActive: packageMedia.isActive,
+				altText: packageMedia.altText,
+				description: packageMedia.description
+			})
+			.from(packageMedia)
+			.where(eq(packageMedia.packageVariantId, Number(variant.id)))
+			.orderBy(packageMedia.sortOrder, packageMedia.id)
+	).map(item => ({
+		...item,
+		fileSize: item.fileSize !== null ? Number(item.fileSize) : null
+	}))
 
 	return (
 		<main className='space-y-8 p-6'>
