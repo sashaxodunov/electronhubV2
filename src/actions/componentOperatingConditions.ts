@@ -6,11 +6,12 @@ import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
 import { componentOperatingConditions } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function getRequiredBigInt(
 	formData: FormData,
 	name: string,
-	message: string
+	message: string,
 ): bigint {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -30,7 +31,7 @@ function getRequiredBigInt(
 function getRequiredString(
 	formData: FormData,
 	name: string,
-	message: string
+	message: string,
 ): string {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -43,7 +44,7 @@ function getRequiredString(
 
 function getOptionalString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -52,7 +53,7 @@ function getOptionalString(
 
 function getOptionalNumber(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -61,27 +62,21 @@ function getOptionalNumber(
 	}
 
 	if (!/^-?\d+(?:[.,]\d+)?$/.test(value)) {
-		throw new Error(
-			`Некорректное числовое значение: ${name} `
-		)
+		throw new Error(`Некорректное числовое значение: ${name}`)
 	}
 
 	return value.replace(',', '.')
 }
 
 function getSortOrder(formData: FormData): number {
-	const value = String(
-		formData.get('sortOrder') ?? ''
-	).trim()
+	const value = String(formData.get('sortOrder') ?? '').trim()
 
 	if (!value) {
 		return 0
 	}
 
 	if (!/^\d+$/.test(value)) {
-		throw new Error(
-			'Некорректный порядок условия'
-		)
+		throw new Error('Некорректный порядок условия')
 	}
 
 	const sortOrder = Number(value)
@@ -90,53 +85,25 @@ function getSortOrder(formData: FormData): number {
 		!Number.isSafeInteger(sortOrder) ||
 		sortOrder < 0
 	) {
-		throw new Error(
-			'Некорректный порядок условия'
-		)
+		throw new Error('Некорректный порядок условия')
 	}
 
 	return sortOrder
 }
 
-function getOperatingConditionData(
-	formData: FormData
-) {
+function getOperatingConditionData(formData: FormData) {
 	const name = getRequiredString(
 		formData,
 		'name',
-		'Не указано название условия'
+		'Не указано название условия',
 	)
 
-	const symbol = getOptionalString(
-		formData,
-		'symbol'
-	)
-
-	const valueMin = getOptionalNumber(
-		formData,
-		'valueMin'
-	)
-
-	const valueTyp = getOptionalNumber(
-		formData,
-		'valueTyp'
-	)
-
-	const valueMax = getOptionalNumber(
-		formData,
-		'valueMax'
-	)
-
-	const unit = getOptionalString(
-		formData,
-		'unit'
-	)
-
-	const conditionText = getOptionalString(
-		formData,
-		'conditionText'
-	)
-
+	const symbol = getOptionalString(formData, 'symbol')
+	const valueMin = getOptionalNumber(formData, 'valueMin')
+	const valueTyp = getOptionalNumber(formData, 'valueTyp')
+	const valueMax = getOptionalNumber(formData, 'valueMax')
+	const unit = getOptionalString(formData, 'unit')
+	const conditionText = getOptionalString(formData, 'conditionText')
 	const sortOrder = getSortOrder(formData)
 
 	return {
@@ -147,93 +114,84 @@ function getOperatingConditionData(
 		valueMax,
 		unit,
 		conditionText,
-		sortOrder
+		sortOrder,
 	}
 }
 
+function getReturnUrl(componentId: bigint): string {
+	return `/admin/components/${componentId.toString()}?tab=operating-conditions`
+}
+
 export async function createComponentOperatingCondition(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Не указан компонент'
+		'Не указан компонент',
 	)
 
-	const data =
-		getOperatingConditionData(formData)
+	const data = getOperatingConditionData(formData)
 
 	await db
 		.insert(componentOperatingConditions)
 		.values({
 			componentId,
-			...data
+			...data,
 		})
 
-	redirect(
-		`/ admin / components / ${componentId.toString()}?tab = operating - conditions`
-	)
+	redirect(getReturnUrl(componentId))
 }
 
 export async function updateComponentOperatingCondition(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const id = getRequiredBigInt(
 		formData,
 		'id',
-		'Некорректный ID условия'
+		'Некорректный ID условия',
 	)
 
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Некорректный ID компонента'
+		'Некорректный ID компонента',
 	)
 
-	const data =
-		getOperatingConditionData(formData)
+	const data = getOperatingConditionData(formData)
 
 	await db
 		.update(componentOperatingConditions)
 		.set(data)
-		.where(
-			eq(
-				componentOperatingConditions.id,
-				id
-			)
-		)
+		.where(eq(componentOperatingConditions.id, id))
 
-	redirect(
-		`/ admin / components / ${componentId.toString()}?tab = operating - conditions`
-	)
+	redirect(getReturnUrl(componentId))
 }
 
 export async function deleteComponentOperatingCondition(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const id = getRequiredBigInt(
 		formData,
 		'id',
-		'Некорректный ID условия'
+		'Некорректный ID условия',
 	)
 
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Некорректный ID компонента'
+		'Некорректный ID компонента',
 	)
 
 	await db
 		.delete(componentOperatingConditions)
-		.where(
-			eq(
-				componentOperatingConditions.id,
-				id
-			)
-		)
+		.where(eq(componentOperatingConditions.id, id))
 
-	redirect(
-		`/ admin / components / ${componentId.toString()}?tab = operating - conditions`
-	)
+	redirect(getReturnUrl(componentId))
 }
-

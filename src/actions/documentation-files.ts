@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache'
 
 import { db } from '@/db'
 import { documentation, documentationFiles } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 import {
 	deleteStoredObject,
 	uploadPdf,
@@ -51,13 +52,15 @@ async function refreshDocumentPaths(
 ) {
 	revalidatePath('/admin/documentation')
 	revalidatePath('/documentation')
-	revalidatePath(`/ documentation / ${categorySlug} `)
-	revalidatePath(`/ documentation / ${categorySlug}/${slug}`)
+	revalidatePath(`/documentation/${categorySlug}`)
+	revalidatePath(`/documentation/${categorySlug}/${slug}`)
 }
 
 export async function uploadDocumentationFile(
 	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const documentId = parseId(formData.get('documentId'))
 	const file = formData.get('file')
 
@@ -97,16 +100,16 @@ export async function uploadDocumentationFile(
 		throw new Error('Файл не имеет корректной сигнатуры PDF')
 	}
 
-	const safeName = file.name
-		.replace(/[/\\]/g, '_')
-		.replace(/[^\p{L}\p{N}._() -]/gu, '_')
-		.trim()
-		.slice(0, 220) || 'document.pdf'
+	const safeName =
+		file.name
+			.replace(/[\\/\r\n]/g, '_')
+			.replace(/[^\p{L}\p{N}._() -]/gu, '_')
+			.trim()
+			.slice(0, 220) || 'document.pdf'
 
 	const objectKey =
 		`documentation/${documentId.toString()}/${randomUUID()}.pdf`
 
-	// Сначала загружаем объект в S3.
 	await uploadPdf(objectKey, bytes)
 
 	try {
@@ -151,6 +154,8 @@ export async function uploadDocumentationFile(
 export async function deleteDocumentationFile(
 	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const fileId = parseId(formData.get('fileId'))
 
 	const [file] = await db
@@ -180,11 +185,16 @@ export async function deleteDocumentationFile(
 	const remaining = await db
 		.select({ id: documentationFiles.id })
 		.from(documentationFiles)
-		.where(eq(
-			documentationFiles.documentationId,
-			file.documentationId,
-		))
-		.orderBy(asc(documentationFiles.sortOrder), asc(documentationFiles.id))
+		.where(
+			eq(
+				documentationFiles.documentationId,
+				file.documentationId,
+			),
+		)
+		.orderBy(
+			asc(documentationFiles.sortOrder),
+			asc(documentationFiles.id),
+		)
 
 	// Если удалили основной файл, назначаем следующий.
 	if (file.isPrimary && remaining.length > 0) {
@@ -205,6 +215,8 @@ export async function deleteDocumentationFile(
 export async function setPrimaryDocumentationFile(
 	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const fileId = parseId(formData.get('fileId'))
 
 	const [file] = await db
@@ -227,13 +239,15 @@ export async function setPrimaryDocumentationFile(
 		await tx
 			.update(documentationFiles)
 			.set({ isPrimary: false })
-			.where(and(
-				eq(
-					documentationFiles.documentationId,
-					file.documentationId,
+			.where(
+				and(
+					eq(
+						documentationFiles.documentationId,
+						file.documentationId,
+					),
+					ne(documentationFiles.id, fileId),
 				),
-				ne(documentationFiles.id, fileId),
-			))
+			)
 
 		await tx
 			.update(documentationFiles)
@@ -252,12 +266,16 @@ export async function setPrimaryDocumentationFile(
 export async function reorderDocumentationFiles(
 	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const documentId = parseId(formData.get('documentId'))
 	const rawIds = formData.getAll('fileIds')
 
 	if (
 		rawIds.length > MAX_FILES_PER_DOCUMENT ||
-		rawIds.some((id) => typeof id !== 'string' || !MAX_ID.test(id))
+		rawIds.some(
+			(id) => typeof id !== 'string' || !MAX_ID.test(id),
+		)
 	) {
 		throw new Error('Некорректный список файлов')
 	}
@@ -274,14 +292,18 @@ export async function reorderDocumentationFiles(
 		const existing = await tx
 			.select({ id: documentationFiles.id })
 			.from(documentationFiles)
-			.where(eq(
-				documentationFiles.documentationId,
-				documentId,
-			))
+			.where(
+				eq(
+					documentationFiles.documentationId,
+					documentId,
+				),
+			)
 
 		if (
 			existing.length !== ids.length ||
-			existing.some((item) => !ids.some((id) => id === item.id))
+			existing.some(
+				(item) => !ids.some((id) => id === item.id),
+			)
 		) {
 			throw new Error('Список файлов документа изменился')
 		}
@@ -290,10 +312,15 @@ export async function reorderDocumentationFiles(
 			await tx
 				.update(documentationFiles)
 				.set({ sortOrder: index })
-				.where(and(
-					eq(documentationFiles.id, id),
-					eq(documentationFiles.documentationId, documentId),
-				))
+				.where(
+					and(
+						eq(documentationFiles.id, id),
+						eq(
+							documentationFiles.documentationId,
+							documentId,
+						),
+					),
+				)
 		}
 	})
 

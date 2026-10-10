@@ -1,37 +1,30 @@
+
 'use server'
 
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 import { db } from '@/db'
-import {
-	assetType,
-	componentMedia
-} from '@/db/schema'
+import { assetType, componentMedia } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function getString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	return value || null
 }
 
 function getRequiredString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
-		throw new Error(
-			`Поле ${name} обязательно`
-		)
+		throw new Error(`Поле ${name} обязательно`)
 	}
 
 	return value
@@ -39,11 +32,9 @@ function getRequiredString(
 
 function getNumber(
 	formData: FormData,
-	name: string
+	name: string,
 ): number | null {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
 		return null
@@ -52,9 +43,7 @@ function getNumber(
 	const number = Number(value)
 
 	if (!Number.isFinite(number)) {
-		throw new Error(
-			`Некорректное значение поля ${name}`
-		)
+		throw new Error(`Некорректное значение поля ${name}`)
 	}
 
 	return number
@@ -62,20 +51,16 @@ function getNumber(
 
 function getBigInt(
 	formData: FormData,
-	name: string
+	name: string,
 ): bigint | null {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
 		return null
 	}
 
 	if (!/^\d+$/.test(value)) {
-		throw new Error(
-			`Некорректное значение поля ${name}`
-		)
+		throw new Error(`Некорректное значение поля ${name}`)
 	}
 
 	return BigInt(value)
@@ -83,237 +68,131 @@ function getBigInt(
 
 function getId(
 	formData: FormData,
-	name: string
+	name: string,
 ): bigint {
-	const value = getRequiredString(
-		formData,
-		name
-	)
+	const value = getRequiredString(formData, name)
 
 	if (!/^\d+$/.test(value)) {
-		throw new Error(
-			`Некорректный ID: ${name}`
-		)
+		throw new Error(`Некорректный ID: ${name}`)
 	}
 
 	const id = BigInt(value)
 
 	if (id <= BigInt(0)) {
-		throw new Error(
-			`Некорректный ID: ${name}`
-		)
+		throw new Error(`Некорректный ID: ${name}`)
 	}
 
 	return id
 }
 
 function getAssetType(
-	formData: FormData
-) {
-	const value =
-		getRequiredString(
-			formData,
-			'assetType'
-		)
+	formData: FormData,
+): (typeof assetType.enumValues)[number] {
+	const value = getRequiredString(formData, 'assetType')
 
 	if (
 		!assetType.enumValues.includes(
-			value as (typeof assetType.enumValues)[number]
+			value as (typeof assetType.enumValues)[number],
 		)
 	) {
-		throw new Error(
-			`Недопустимый тип ресурса: ${value}`
-		)
+		throw new Error(`Недопустимый тип ресурса: ${value}`)
 	}
 
-	return value as
-		(typeof assetType.enumValues)[number]
+	return value as (typeof assetType.enumValues)[number]
 }
 
-function getMediaValues(
-	formData: FormData
-) {
+function getMediaValues(formData: FormData) {
 	return {
-		assetType:
-			getAssetType(formData),
+		assetType: getAssetType(formData),
 
-		title:
-			getString(
-				formData,
-				'title'
-			),
+		title: getString(formData, 'title'),
 
-		fileUrl:
-			getRequiredString(
-				formData,
-				'fileUrl'
-			),
+		fileUrl: getRequiredString(formData, 'fileUrl'),
 
-		mimeType:
-			getString(
-				formData,
-				'mimeType'
-			),
+		mimeType: getString(formData, 'mimeType'),
 
-		fileSize:
-			getBigInt(
-				formData,
-				'fileSize'
-			),
+		fileSize: getBigInt(formData, 'fileSize'),
 
-		width:
-			getNumber(
-				formData,
-				'width'
-			),
+		width: getNumber(formData, 'width'),
 
-		height:
-			getNumber(
-				formData,
-				'height'
-			),
+		height: getNumber(formData, 'height'),
 
-		sortOrder:
-			getNumber(
-				formData,
-				'sortOrder'
-			) ?? 0,
+		sortOrder: getNumber(formData, 'sortOrder') ?? 0,
 
-		isPrimary:
-			formData.get(
-				'isPrimary'
-			) === 'on',
+		isPrimary: formData.get('isPrimary') === 'on',
 
-		isActive:
-			formData.get(
-				'isActive'
-			) === 'on',
+		isActive: formData.get('isActive') === 'on',
 
-		altText:
-			getString(
-				formData,
-				'altText'
-			),
+		altText: getString(formData, 'altText'),
 
-		description:
-			getString(
-				formData,
-				'description'
-			)
+		description: getString(formData, 'description'),
 	}
 }
 
 export async function createComponentMedia(
-	formData: FormData
+	formData: FormData,
 ) {
-	const componentId =
-		getId(
-			formData,
-			'componentId'
-		)
+	await requireAdmin()
 
-	const values =
-		getMediaValues(
-			formData
-		)
+	const componentId = getId(formData, 'componentId')
+	const values = getMediaValues(formData)
 
 	await db
 		.insert(componentMedia)
 		.values({
 			componentId,
-			...values
+			...values,
 		})
 
 	revalidatePath(
-		`/admin/components/${componentId.toString()}`
+		`/admin/components/${componentId.toString()}`,
 	)
 }
 
 export async function updateComponentMedia(
-	formData: FormData
+	formData: FormData,
 ) {
-	const id =
-		getId(
-			formData,
-			'id'
-		)
+	await requireAdmin()
 
-	const componentId =
-		getId(
-			formData,
-			'componentId'
-		)
-
-	const values =
-		getMediaValues(
-			formData
-		)
+	const id = getId(formData, 'id')
+	const componentId = getId(formData, 'componentId')
+	const values = getMediaValues(formData)
 
 	await db
 		.update(componentMedia)
 		.set(values)
-		.where(
-			eq(
-				componentMedia.id,
-				id
-			)
-		)
+		.where(eq(componentMedia.id, id))
 
 	revalidatePath(
-		`/admin/components/${componentId.toString()}`
+		`/admin/components/${componentId.toString()}`,
 	)
 }
 
 export async function deleteComponentMedia(
-	formData: FormData
+	formData: FormData,
 ) {
-	const id =
-		getId(
-			formData,
-			'id'
-		)
+	await requireAdmin()
 
-	const componentId =
-		getId(
-			formData,
-			'componentId'
-		)
+	const id = getId(formData, 'id')
+	const componentId = getId(formData, 'componentId')
 
-	const [media] =
-		await db
-			.select({
-				fileUrl:
-					componentMedia.fileUrl
-			})
-			.from(componentMedia)
-			.where(
-				eq(
-					componentMedia.id,
-					id
-				)
-			)
-			.limit(1)
+	const [media] = await db
+		.select({
+			fileUrl: componentMedia.fileUrl,
+		})
+		.from(componentMedia)
+		.where(eq(componentMedia.id, id))
+		.limit(1)
 
 	if (media) {
 		await db
 			.delete(componentMedia)
-			.where(
-				eq(
-					componentMedia.id,
-					id
-				)
-			)
+			.where(eq(componentMedia.id, id))
 
 		try {
-			const {
-				deleteFile
-			} = await import(
-				'@/lib/storage'
-			)
+			const { deleteFile } = await import('@/lib/storage')
 
-			await deleteFile(
-				media.fileUrl
-			)
+			await deleteFile(media.fileUrl)
 		} catch {
 			// Запись из БД уже удалена.
 			// Если физический файл отсутствует,
@@ -322,6 +201,6 @@ export async function deleteComponentMedia(
 	}
 
 	revalidatePath(
-		`/admin/components/${componentId.toString()}`
+		`/admin/components/${componentId.toString()}`,
 	)
 }

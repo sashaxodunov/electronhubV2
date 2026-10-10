@@ -1,3 +1,4 @@
+
 'use server'
 
 import 'server-only'
@@ -7,7 +8,7 @@ import { redirect } from 'next/navigation'
 import {
 	createAdminSession,
 	destroyAdminSession,
-	verifyAdminPassword
+	verifyAdminPassword,
 } from '@/lib/auth/require-admin'
 
 export type LoginState = {
@@ -16,7 +17,7 @@ export type LoginState = {
 
 export async function loginAdmin(
 	_previousState: LoginState,
-	formData: FormData
+	formData: FormData,
 ): Promise<LoginState> {
 	const password = formData.get('password')
 
@@ -26,7 +27,7 @@ export async function loginAdmin(
 
 	if (!process.env.ADMIN_PASSWORD) {
 		return {
-			error: 'Авторизация не настроена. Проверьте переменные окружения.'
+			error: 'Авторизация не настроена. Проверьте переменные окружения.',
 		}
 	}
 
@@ -38,7 +39,7 @@ export async function loginAdmin(
 		await createAdminSession()
 	} catch {
 		return {
-			error: 'Не удалось создать сессию. Проверьте настройки сервера.'
+			error: 'Не удалось создать сессию. Проверьте настройки сервера.',
 		}
 	}
 

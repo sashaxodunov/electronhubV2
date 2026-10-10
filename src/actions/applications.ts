@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
 import { applications } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function parseId(value: string): bigint {
 	if (!/^[1-9]\d*$/.test(value)) {
@@ -50,6 +51,8 @@ function validateApplication(formData: FormData) {
 }
 
 export async function createApplication(formData: FormData) {
+	await requireAdmin()
+
 	const values = validateApplication(formData)
 
 	const [created] = await db
@@ -65,6 +68,8 @@ export async function createApplication(formData: FormData) {
 }
 
 export async function updateApplication(formData: FormData) {
+	await requireAdmin()
+
 	const id = parseId(readText(formData, 'id'))
 	const values = validateApplication(formData)
 
@@ -82,6 +87,8 @@ export async function updateApplication(formData: FormData) {
 }
 
 export async function deleteApplication(formData: FormData) {
+	await requireAdmin()
+
 	const id = parseId(readText(formData, 'id'))
 
 	await db

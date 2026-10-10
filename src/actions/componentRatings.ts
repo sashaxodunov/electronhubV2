@@ -1,3 +1,4 @@
+
 'use server'
 
 import { redirect } from 'next/navigation'
@@ -5,6 +6,7 @@ import { eq } from 'drizzle-orm'
 
 import { db } from '@/db'
 import { componentRatings } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 type RatingInput = {
 	componentId: string
@@ -30,7 +32,9 @@ function parseId(value: string): bigint {
 function parseNumber(value?: string): string | null {
 	const normalized = value?.trim().replace(',', '.')
 
-	if (!normalized) return null
+	if (!normalized) {
+		return null
+	}
 
 	if (!/^-?\d+(?:\.\d+)?$/.test(normalized)) {
 		throw new Error(`Некорректное числовое значение: ${value}`)
@@ -41,15 +45,25 @@ function parseNumber(value?: string): string | null {
 
 function parseText(value?: string): string | null {
 	const normalized = value?.trim()
+
 	return normalized || null
 }
 
 function parseSortOrder(value?: string): number {
 	const normalized = value?.trim() || '0'
+
+	if (!/^\d+$/.test(normalized)) {
+		throw new Error(
+			'Порядок сортировки должен быть целым неотрицательным числом',
+		)
+	}
+
 	const result = Number(normalized)
 
 	if (!Number.isSafeInteger(result) || result < 0) {
-		throw new Error('Порядок сортировки должен быть целым неотрицательным числом')
+		throw new Error(
+			'Порядок сортировки должен быть целым неотрицательным числом',
+		)
 	}
 
 	return result
@@ -63,14 +77,19 @@ function validateInput(input: RatingInput) {
 	}
 
 	if (name.length > 255) {
-		throw new Error('Название характеристики не должно превышать 255 символов')
+		throw new Error(
+			'Название характеристики не должно превышать 255 символов',
+		)
 	}
 
-	if (input.symbol && input.symbol.length > 100) {
+	const symbol = parseText(input.symbol)
+	const unit = parseText(input.unit)
+
+	if (symbol && symbol.length > 100) {
 		throw new Error('Обозначение не должно превышать 100 символов')
 	}
 
-	if (input.unit && input.unit.length > 50) {
+	if (unit && unit.length > 50) {
 		throw new Error('Единица измерения не должна превышать 50 символов')
 	}
 
@@ -83,16 +102,18 @@ function validateInput(input: RatingInput) {
 		valueMax !== null &&
 		Number(valueMin) > Number(valueMax)
 	) {
-		throw new Error('Минимальное значение не может превышать максимальное')
+		throw new Error(
+			'Минимальное значение не может превышать максимальное',
+		)
 	}
 
 	return {
 		name,
-		symbol: parseText(input.symbol),
+		symbol,
 		valueMin,
 		valueTyp,
 		valueMax,
-		unit: parseText(input.unit),
+		unit,
 		conditionText: parseText(input.conditionText),
 		note: parseText(input.note),
 		sortOrder: parseSortOrder(input.sortOrder),
@@ -100,6 +121,8 @@ function validateInput(input: RatingInput) {
 }
 
 export async function createComponentRating(input: RatingInput) {
+	await requireAdmin()
+
 	const componentId = parseId(input.componentId)
 	const values = validateInput(input)
 
@@ -117,6 +140,8 @@ export async function updateComponentRating(
 	id: string,
 	input: RatingInput,
 ) {
+	await requireAdmin()
+
 	const ratingId = parseId(id)
 	const componentId = parseId(input.componentId)
 	const values = validateInput(input)
@@ -135,6 +160,8 @@ export async function deleteComponentRating(
 	id: string,
 	componentIdValue: string,
 ) {
+	await requireAdmin()
+
 	const ratingId = parseId(id)
 	const componentId = parseId(componentIdValue)
 

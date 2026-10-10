@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
 import { applications, componentApplications } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function parseId(value: string): bigint {
 	if (!/^[1-9]\d*$/.test(value)) {
@@ -47,6 +48,8 @@ function getReturnUrl(componentId: bigint): string {
 
 /** Добавить область применения к компоненту */
 export async function createComponentApplication(formData: FormData) {
+	await requireAdmin()
+
 	const componentId = parseId(readRequired(formData, 'componentId'))
 	const applicationId = parseId(readRequired(formData, 'applicationId'))
 	const description = getDescription(formData)
@@ -84,6 +87,8 @@ export async function createComponentApplication(formData: FormData) {
 
 /** Изменить описание связи */
 export async function updateComponentApplication(formData: FormData) {
+	await requireAdmin()
+
 	const componentId = parseId(readRequired(formData, 'componentId'))
 	const applicationId = parseId(readRequired(formData, 'applicationId'))
 	const description = getDescription(formData)
@@ -103,6 +108,8 @@ export async function updateComponentApplication(formData: FormData) {
 
 /** Удалить связь, не удаляя саму область применения */
 export async function deleteComponentApplication(formData: FormData) {
+	await requireAdmin()
+
 	const componentId = parseId(readRequired(formData, 'componentId'))
 	const applicationId = parseId(readRequired(formData, 'applicationId'))
 

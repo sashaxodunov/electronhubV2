@@ -3,8 +3,10 @@
 
 import { redirect } from 'next/navigation'
 import { and, eq, ne } from 'drizzle-orm'
+
 import { db } from '@/db'
 import { componentAliases } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 type AliasInput = {
 	componentId: string
@@ -54,10 +56,12 @@ function validateInput(input: AliasInput) {
 }
 
 function aliasesUrl(componentId: bigint): string {
-	return `/ admin / components / ${componentId.toString()}?tab = aliases`
+	return `/admin/components/${componentId.toString()}?tab=aliases`
 }
 
 export async function createComponentAlias(formData: FormData) {
+	await requireAdmin()
+
 	const input = readFormData(formData)
 	const componentId = parseId(input.componentId)
 	const values = validateInput(input)
@@ -80,6 +84,8 @@ export async function createComponentAlias(formData: FormData) {
 }
 
 export async function updateComponentAlias(formData: FormData) {
+	await requireAdmin()
+
 	const input = readFormData(formData)
 	const aliasId = parseId(String(formData.get('id') ?? ''))
 	const componentId = parseId(input.componentId)
@@ -113,6 +119,8 @@ export async function updateComponentAlias(formData: FormData) {
 }
 
 export async function deleteComponentAlias(formData: FormData) {
+	await requireAdmin()
+
 	const aliasId = parseId(String(formData.get('id') ?? ''))
 	const componentId = parseId(
 		String(formData.get('componentId') ?? ''),

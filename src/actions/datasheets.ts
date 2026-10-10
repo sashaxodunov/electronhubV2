@@ -1,3 +1,4 @@
+
 'use server'
 
 import 'server-only'
@@ -12,6 +13,7 @@ import {
 	datasheets,
 	datasheetStorageCleanup,
 } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 import {
 	deleteStoredObject,
 	uploadPdf,
@@ -269,6 +271,8 @@ async function cleanupOrQueue(key: string): Promise<void> {
 }
 
 export async function createDatasheet(formData: FormData) {
+	await requireAdmin()
+
 	const componentId = parseId(
 		text(formData, 'componentId'),
 		'componentId',
@@ -319,10 +323,13 @@ export async function createDatasheet(formData: FormData) {
 }
 
 export async function updateDatasheet(formData: FormData) {
+	await requireAdmin()
+
 	const componentId = parseId(
 		text(formData, 'componentId'),
 		'componentId',
 	)
+
 	const datasheetId = parseId(
 		text(formData, 'datasheetId'),
 		'datasheetId',
@@ -370,10 +377,13 @@ export async function updateDatasheet(formData: FormData) {
 }
 
 export async function deleteDatasheet(formData: FormData) {
+	await requireAdmin()
+
 	const componentId = parseId(
 		text(formData, 'componentId'),
 		'componentId',
 	)
+
 	const datasheetId = parseId(
 		text(formData, 'datasheetId'),
 		'datasheetId',
@@ -433,6 +443,8 @@ export async function deleteDatasheet(formData: FormData) {
 }
 
 export async function retryDatasheetCleanup(formData: FormData) {
+	await requireAdmin()
+
 	const jobId = parseId(text(formData, 'jobId'), 'jobId')
 
 	const [job] = await db

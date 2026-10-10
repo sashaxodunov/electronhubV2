@@ -1,3 +1,4 @@
+
 'use server'
 
 import { eq } from 'drizzle-orm'
@@ -5,25 +6,22 @@ import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
 import { packageMedia, packageMediaType } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function getString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	return value || null
 }
 
 function getRequiredString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
 		throw new Error(`Поле ${name} обязательно`)
@@ -34,11 +32,9 @@ function getRequiredString(
 
 function getNumber(
 	formData: FormData,
-	name: string
+	name: string,
 ): number | null {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
 		return null
@@ -47,9 +43,7 @@ function getNumber(
 	const number = Number(value)
 
 	if (!Number.isFinite(number)) {
-		throw new Error(
-			`Некорректное значение поля ${name}`
-		)
+		throw new Error(`Некорректное значение поля ${name}`)
 	}
 
 	return number
@@ -57,20 +51,16 @@ function getNumber(
 
 function getBigInt(
 	formData: FormData,
-	name: string
+	name: string,
 ): bigint | null {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
 
 	if (!value) {
 		return null
 	}
 
 	if (!/^\d+$/.test(value)) {
-		throw new Error(
-			`Некорректное значение поля ${name}`
-		)
+		throw new Error(`Некорректное значение поля ${name}`)
 	}
 
 	return BigInt(value)
@@ -78,181 +68,110 @@ function getBigInt(
 
 function getId(
 	formData: FormData,
-	name: string
+	name: string,
 ): number {
-	const value = String(
-		formData.get(name) ?? ''
-	).trim()
+	const value = String(formData.get(name) ?? '').trim()
+
+	if (!/^[1-9]\d*$/.test(value)) {
+		throw new Error(`Некорректный ID: ${name}`)
+	}
 
 	const id = Number(value)
 
-	if (
-		!Number.isSafeInteger(id) ||
-		id <= 0
-	) {
-		throw new Error(
-			`Некорректный ID: ${name}`
-		)
+	if (!Number.isSafeInteger(id) || id <= 0) {
+		throw new Error(`Некорректный ID: ${name}`)
 	}
 
 	return id
 }
 
 function getMediaType(
-	formData: FormData
-) {
-	const value = getRequiredString(
-		formData,
-		'mediaType'
-	)
+	formData: FormData,
+): (typeof packageMediaType.enumValues)[number] {
+	const value = getRequiredString(formData, 'mediaType')
 
 	if (
 		!packageMediaType.enumValues.includes(
-			value as (typeof packageMediaType.enumValues)[number]
+			value as (typeof packageMediaType.enumValues)[number],
 		)
 	) {
-		throw new Error(
-			`Недопустимый тип медиа: ${value}`
-		)
+		throw new Error(`Недопустимый тип медиа: ${value}`)
 	}
 
-	return value as (
-		typeof packageMediaType.enumValues
-	)[number]
+	return value as (typeof packageMediaType.enumValues)[number]
 }
 
 function getMediaValues(formData: FormData) {
 	return {
 		mediaType: getMediaType(formData),
-
-		title: getString(
-			formData,
-			'title'
-		),
-
-		fileUrl: getRequiredString(
-			formData,
-			'fileUrl'
-		),
-
-		mimeType: getString(
-			formData,
-			'mimeType'
-		),
-
-		fileSize: getBigInt(
-			formData,
-			'fileSize'
-		),
-
-		width: getNumber(
-			formData,
-			'width'
-		),
-
-		height: getNumber(
-			formData,
-			'height'
-		),
-
-		sortOrder:
-			getNumber(
-				formData,
-				'sortOrder'
-			) ?? 0,
-
-		isPrimary:
-			formData.get('isPrimary') === 'on',
-
-		isActive:
-			formData.get('isActive') === 'on',
-
-		altText: getString(
-			formData,
-			'altText'
-		),
-
-		description: getString(
-			formData,
-			'description'
-		)
+		title: getString(formData, 'title'),
+		fileUrl: getRequiredString(formData, 'fileUrl'),
+		mimeType: getString(formData, 'mimeType'),
+		fileSize: getBigInt(formData, 'fileSize'),
+		width: getNumber(formData, 'width'),
+		height: getNumber(formData, 'height'),
+		sortOrder: getNumber(formData, 'sortOrder') ?? 0,
+		isPrimary: formData.get('isPrimary') === 'on',
+		isActive: formData.get('isActive') === 'on',
+		altText: getString(formData, 'altText'),
+		description: getString(formData, 'description'),
 	}
 }
 
+function getReturnUrl(
+	packageId: number,
+	packageVariantId: number,
+): string {
+	return `/admin/packages/${packageId}/variants/${packageVariantId}`
+}
+
 export async function createPackageVariantMedia(
-	formData: FormData
+	formData: FormData,
 ) {
-	const packageVariantId = getId(
-		formData,
-		'packageVariantId'
-	)
+	await requireAdmin()
 
-	const values = getMediaValues(
-		formData
-	)
+	const packageVariantId = getId(formData, 'packageVariantId')
+	const packageId = getId(formData, 'packageId')
+	const values = getMediaValues(formData)
 
-	await db
-		.insert(packageMedia)
-		.values({
-			packageVariantId,
-			...values
-		})
+	await db.insert(packageMedia).values({
+		packageVariantId,
+		...values,
+	})
 
-	const packageId = getId(
-		formData,
-		'packageId'
-	)
-
-	redirect(
-		`/admin/packages/${packageId}/variants/${packageVariantId}`
-	)
+	redirect(getReturnUrl(packageId, packageVariantId))
 }
 
 export async function updatePackageVariantMedia(
-	formData: FormData
+	formData: FormData,
 ) {
-	const id = getId(
-		formData,
-		'id'
-	)
+	await requireAdmin()
 
-	const packageId = getId(
-		formData,
-		'packageId'
-	)
-
-	const packageVariantId = getId(
-		formData,
-		'packageVariantId'
-	)
-
-	const values = getMediaValues(
-		formData
-	)
+	const id = getId(formData, 'id')
+	const packageId = getId(formData, 'packageId')
+	const packageVariantId = getId(formData, 'packageVariantId')
+	const values = getMediaValues(formData)
 
 	await db
 		.update(packageMedia)
 		.set(values)
-		.where(
-			eq(
-				packageMedia.id,
-				BigInt(id)
-			)
-		)
+		.where(eq(packageMedia.id, BigInt(id)))
 
-	redirect(
-		`/admin/packages/${packageId}/variants/${packageVariantId}`
-	)
+	redirect(getReturnUrl(packageId, packageVariantId))
 }
 
-export async function deletePackageVariantMedia(formData: FormData) {
+export async function deletePackageVariantMedia(
+	formData: FormData,
+) {
+	await requireAdmin()
+
 	const id = getId(formData, 'id')
 	const packageId = getId(formData, 'packageId')
 	const packageVariantId = getId(formData, 'packageVariantId')
 
 	const [media] = await db
 		.select({
-			fileUrl: packageMedia.fileUrl
+			fileUrl: packageMedia.fileUrl,
 		})
 		.from(packageMedia)
 		.where(eq(packageMedia.id, BigInt(id)))
@@ -265,7 +184,6 @@ export async function deletePackageVariantMedia(formData: FormData) {
 
 		try {
 			const { deleteFile } = await import('@/lib/storage')
-
 			await deleteFile(media.fileUrl)
 		} catch {
 			// Файл мог быть уже удалён.
@@ -273,5 +191,5 @@ export async function deletePackageVariantMedia(formData: FormData) {
 		}
 	}
 
-	redirect(`/admin/packages/${packageId}/variants/${packageVariantId}`)
+	redirect(getReturnUrl(packageId, packageVariantId))
 }

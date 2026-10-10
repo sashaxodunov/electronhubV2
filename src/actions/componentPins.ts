@@ -1,3 +1,4 @@
+
 'use server'
 
 import { eq } from 'drizzle-orm'
@@ -6,13 +7,14 @@ import { redirect } from 'next/navigation'
 import { db } from '@/db'
 import {
 	componentPins,
-	pinType
+	pinType,
 } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function getRequiredBigInt(
 	formData: FormData,
 	name: string,
-	message: string
+	message: string,
 ): bigint {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -32,7 +34,7 @@ function getRequiredBigInt(
 function getRequiredString(
 	formData: FormData,
 	name: string,
-	message: string
+	message: string,
 ): string {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -45,23 +47,25 @@ function getRequiredString(
 
 function getOptionalString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
 	const value = String(formData.get(name) ?? '').trim()
 
 	return value || null
 }
 
-function getPinType(formData: FormData) {
+function getPinType(
+	formData: FormData,
+): (typeof pinType.enumValues)[number] {
 	const value = getRequiredString(
 		formData,
 		'pinType',
-		'Не указан тип вывода'
+		'Не указан тип вывода',
 	)
 
 	if (
 		!pinType.enumValues.includes(
-			value as (typeof pinType.enumValues)[number]
+			value as (typeof pinType.enumValues)[number],
 		)
 	) {
 		throw new Error(`Недопустимый тип вывода: ${value}`)
@@ -74,39 +78,23 @@ function getPinData(formData: FormData) {
 	const pinNumber = getRequiredString(
 		formData,
 		'pinNumber',
-		'Не указан номер вывода'
+		'Не указан номер вывода',
 	)
 
 	const pinName = getRequiredString(
 		formData,
 		'pinName',
-		'Не указано название вывода'
+		'Не указано название вывода',
 	)
 
 	const pinTypeValue = getPinType(formData)
-
-	const functionValue = getOptionalString(
-		formData,
-		'function'
-	)
-
-	const description = getOptionalString(
-		formData,
-		'description'
-	)
-
-	const activeLevel = getOptionalString(
-		formData,
-		'activeLevel'
-	)
-
-	const element = getOptionalString(
-		formData,
-		'element'
-	)
+	const functionValue = getOptionalString(formData, 'function')
+	const description = getOptionalString(formData, 'description')
+	const activeLevel = getOptionalString(formData, 'activeLevel')
+	const element = getOptionalString(formData, 'element')
 
 	const sortOrderValue = String(
-		formData.get('sortOrder') ?? ''
+		formData.get('sortOrder') ?? '',
 	).trim()
 
 	let sortOrder = 0
@@ -118,13 +106,15 @@ function getPinData(formData: FormData) {
 
 		sortOrder = Number(sortOrderValue)
 
-		if (!Number.isSafeInteger(sortOrder) || sortOrder < 0) {
+		if (
+			!Number.isSafeInteger(sortOrder) ||
+			sortOrder < 0
+		) {
 			throw new Error('Некорректный порядок вывода')
 		}
 	}
 
-	const isExposedPad =
-		formData.get('isExposedPad') === 'true'
+	const isExposedPad = formData.get('isExposedPad') === 'true'
 
 	return {
 		pinNumber,
@@ -135,44 +125,48 @@ function getPinData(formData: FormData) {
 		activeLevel,
 		element,
 		isExposedPad,
-		sortOrder
+		sortOrder,
 	}
 }
 
 export async function createComponentPin(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Не указан компонент'
+		'Не указан компонент',
 	)
 
 	const data = getPinData(formData)
 
 	await db.insert(componentPins).values({
 		componentId,
-		...data
+		...data,
 	})
 
 	redirect(
-		`/admin/components/${componentId.toString()}?tab=pins`
+		`/admin/components/${componentId.toString()}?tab=pins`,
 	)
 }
 
 export async function updateComponentPin(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const id = getRequiredBigInt(
 		formData,
 		'id',
-		'Некорректный ID вывода'
+		'Некорректный ID вывода',
 	)
 
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Некорректный ID компонента'
+		'Некорректный ID компонента',
 	)
 
 	const data = getPinData(formData)
@@ -183,23 +177,25 @@ export async function updateComponentPin(
 		.where(eq(componentPins.id, id))
 
 	redirect(
-		`/admin/components/${componentId.toString()}?tab=pins`
+		`/admin/components/${componentId.toString()}?tab=pins`,
 	)
 }
 
 export async function deleteComponentPin(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const id = getRequiredBigInt(
 		formData,
 		'id',
-		'Некорректный ID вывода'
+		'Некорректный ID вывода',
 	)
 
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Некорректный ID компонента'
+		'Некорректный ID компонента',
 	)
 
 	await db
@@ -207,6 +203,6 @@ export async function deleteComponentPin(
 		.where(eq(componentPins.id, id))
 
 	redirect(
-		`/admin/components/${componentId.toString()}?tab=pins`
+		`/admin/components/${componentId.toString()}?tab=pins`,
 	)
 }

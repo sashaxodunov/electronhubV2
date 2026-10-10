@@ -1,15 +1,17 @@
+
 'use server'
 
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 
 import { db } from '@/db'
 import { componentSpecifications } from '@/db/schema'
+import { requireAdmin } from '@/lib/auth/require-admin'
 
 function getRequiredBigInt(
 	formData: FormData,
 	name: string,
-	message: string
+	message: string,
 ): bigint {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -29,7 +31,7 @@ function getRequiredBigInt(
 function getRequiredString(
 	formData: FormData,
 	name: string,
-	message: string
+	message: string,
 ): string {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -42,7 +44,7 @@ function getRequiredString(
 
 function getOptionalString(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
 	const value = String(formData.get(name) ?? '').trim()
 
@@ -51,24 +53,34 @@ function getOptionalString(
 
 function getOptionalNumber(
 	formData: FormData,
-	name: string
+	name: string,
 ): string | null {
-	const value = String(formData.get(name) ?? '').trim()
+	const value = String(formData.get(name) ?? '')
+		.trim()
+		.replace(',', '.')
 
 	if (!value) {
 		return null
 	}
 
-	if (!/^-?\d+(?:[.,]\d+)?$/.test(value)) {
-		throw new Error(`Некорректное числовое значение: ${name}`)
+	if (!/^-?\d+(?:\.\d+)?$/.test(value)) {
+		throw new Error(
+			`Некорректное числовое значение: ${name}`,
+		)
 	}
 
-	return value.replace(',', '.')
+	if (!Number.isFinite(Number(value))) {
+		throw new Error(
+			`Числовое значение вне допустимого диапазона: ${name}`,
+		)
+	}
+
+	return value
 }
 
 function getSortOrder(formData: FormData): number {
 	const value = String(
-		formData.get('sortOrder') ?? ''
+		formData.get('sortOrder') ?? '',
 	).trim()
 
 	if (!value) {
@@ -95,45 +107,39 @@ function getSpecificationData(formData: FormData) {
 	const name = getRequiredString(
 		formData,
 		'name',
-		'Не указано название характеристики'
+		'Не указано название характеристики',
 	)
 
-	const symbol = getOptionalString(
-		formData,
-		'symbol'
-	)
+	if (name.length > 255) {
+		throw new Error(
+			'Название характеристики не должно превышать 255 символов',
+		)
+	}
 
-	const valueMin = getOptionalNumber(
-		formData,
-		'valueMin'
-	)
-
-	const valueTyp = getOptionalNumber(
-		formData,
-		'valueTyp'
-	)
-
-	const valueMax = getOptionalNumber(
-		formData,
-		'valueMax'
-	)
-
-	const unit = getOptionalString(
-		formData,
-		'unit'
-	)
-
+	const symbol = getOptionalString(formData, 'symbol')
+	const valueMin = getOptionalNumber(formData, 'valueMin')
+	const valueTyp = getOptionalNumber(formData, 'valueTyp')
+	const valueMax = getOptionalNumber(formData, 'valueMax')
+	const unit = getOptionalString(formData, 'unit')
 	const conditionText = getOptionalString(
 		formData,
-		'conditionText'
+		'conditionText',
 	)
-
 	const description = getOptionalString(
 		formData,
-		'description'
+		'description',
 	)
-
 	const sortOrder = getSortOrder(formData)
+
+	if (
+		valueMin !== null &&
+		valueMax !== null &&
+		Number(valueMin) > Number(valueMax)
+	) {
+		throw new Error(
+			'Минимальное значение не может превышать максимальное',
+		)
+	}
 
 	return {
 		name,
@@ -144,17 +150,23 @@ function getSpecificationData(formData: FormData) {
 		unit,
 		conditionText,
 		description,
-		sortOrder
+		sortOrder,
 	}
 }
 
+function getReturnUrl(componentId: bigint): string {
+	return `/admin/components/${componentId.toString()}?tab=characteristics`
+}
+
 export async function createComponentSpecification(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Не указан компонент'
+		'Не указан компонент',
 	)
 
 	const data = getSpecificationData(formData)
@@ -163,27 +175,27 @@ export async function createComponentSpecification(
 		.insert(componentSpecifications)
 		.values({
 			componentId,
-			...data
+			...data,
 		})
 
-	redirect(
-		`/admin/components/${componentId.toString()}?tab=characteristics`
-	)
+	redirect(getReturnUrl(componentId))
 }
 
 export async function updateComponentSpecification(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const id = getRequiredBigInt(
 		formData,
 		'id',
-		'Некорректный ID характеристики'
+		'Некорректный ID характеристики',
 	)
 
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Некорректный ID компонента'
+		'Некорректный ID компонента',
 	)
 
 	const data = getSpecificationData(formData)
@@ -191,33 +203,41 @@ export async function updateComponentSpecification(
 	await db
 		.update(componentSpecifications)
 		.set(data)
-		.where(eq(componentSpecifications.id, id))
+		.where(
+			and(
+				eq(componentSpecifications.id, id),
+				eq(componentSpecifications.componentId, componentId),
+			),
+		)
 
-	redirect(
-		`/admin/components/${componentId.toString()}?tab=characteristics`
-	)
+	redirect(getReturnUrl(componentId))
 }
 
 export async function deleteComponentSpecification(
-	formData: FormData
+	formData: FormData,
 ) {
+	await requireAdmin()
+
 	const id = getRequiredBigInt(
 		formData,
 		'id',
-		'Некорректный ID характеристики'
+		'Некорректный ID характеристики',
 	)
 
 	const componentId = getRequiredBigInt(
 		formData,
 		'componentId',
-		'Некорректный ID компонента'
+		'Некорректный ID компонента',
 	)
 
 	await db
 		.delete(componentSpecifications)
-		.where(eq(componentSpecifications.id, id))
+		.where(
+			and(
+				eq(componentSpecifications.id, id),
+				eq(componentSpecifications.componentId, componentId),
+			),
+		)
 
-	redirect(
-		`/admin/components/${componentId.toString()}?tab=characteristics`
-	)
+	redirect(getReturnUrl(componentId))
 }
