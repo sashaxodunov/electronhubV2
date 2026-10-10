@@ -25,6 +25,10 @@ import { glossaryTerms } from './schema/glossary-terms'
 import { glossaryRelations } from './schema/glossary-relations'
 import { componentApplications } from './schema/component-applications'
 import { applications } from './schema/applications'
+import {
+	documentation,
+	documentationFiles
+} from './schema/documentation'
 
 export const manufacturersRelations = relations(
 	manufacturers,
@@ -282,6 +286,27 @@ export const componentApplicationsRelations = relations(
 		application: one(applications, {
 			fields: [componentApplications.applicationId],
 			references: [applications.id]
+		})
+	})
+)
+
+export const documentationRelations = relations(
+	documentation,
+	({ one, many }) => ({
+		component: one(components, {
+			fields: [documentation.componentId],
+			references: [components.id]
+		}),
+		files: many(documentationFiles)
+	})
+)
+
+export const documentationFilesRelations = relations(
+	documentationFiles,
+	({ one }) => ({
+		documentation: one(documentation, {
+			fields: [documentationFiles.documentationId],
+			references: [documentation.id]
 		})
 	})
 )

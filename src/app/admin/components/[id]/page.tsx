@@ -1,20 +1,39 @@
+import ComponentMediaEditor from '@/components/admin/ComponentMediaEditor'
+import ComponentOperatingConditionsEditor from '@/components/admin/ComponentOperatingConditionsEditor'
+import ComponentPinsEditor from '@/components/admin/ComponentPinsEditor'
+import ComponentRatingsEditor from '@/components/admin/ComponentRatingsEditor'
+import ComponentSpecificationsEditor from '@/components/admin/ComponentSpecificationsEditor'
+import ComponentThermalEditor from '@/components/admin/ComponentThermalEditor'
+import ComponentVariantsEditor from '@/components/admin/ComponentVariantsEditor'
+import { asc, desc, eq } from 'drizzle-orm'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { eq } from 'drizzle-orm'
-import ComponentMediaEditor from '@/components/admin/ComponentMediaEditor'
+import ComponentAliasesEditor from '@/components/admin/ComponentAliasesEditor'
+import ComponentApplicationsEditor from '@/components/admin/ComponentApplicationsEditor'
+import ComponentDatasheetsEditor from '@/components/admin/ComponentDatasheetsEditor'
 
-import ComponentVariantsEditor from '@/components/admin/ComponentVariantsEditor'
 import { db } from '@/db'
 import {
 	assetType,
 	categories,
 	componentMedia,
+	componentAliases,
+	componentOperatingConditions,
+	componentPins,
 	componentSeries,
 	componentVariants,
+	componentRatings,
+	applications,
+	componentApplications,
+	componentSpecifications,
+	componentThermal,
 	components,
 	manufacturers,
 	packageVariants,
-	packages
+	packages,
+	datasheets,
+	documentType,
+	pinType
 } from '@/db/schema'
 
 type PageProps = {
@@ -81,6 +100,9 @@ export default async function ComponentPage({
 	if (!component) {
 		notFound()
 	}
+	/*
+	 * Выводы компонентов
+	 */
 
 	/*
 	 * Варианты компонента + корпус
@@ -146,6 +168,90 @@ export default async function ComponentPage({
 		...item,
 		fileSize: item.fileSize !== null ? Number(item.fileSize) : null
 	}))
+
+	const pins = await db
+		.select()
+		.from(componentPins)
+		.where(eq(componentPins.componentId, componentId))
+		.orderBy(componentPins.sortOrder, componentPins.id)
+
+	const specifications = await db
+		.select()
+		.from(componentSpecifications)
+		.where(eq(componentSpecifications.componentId, componentId))
+		.orderBy(componentSpecifications.sortOrder, componentSpecifications.id)
+
+	const operatingConditions = await db
+		.select()
+		.from(componentOperatingConditions)
+		.where(eq(componentOperatingConditions.componentId, componentId))
+		.orderBy(
+			componentOperatingConditions.sortOrder,
+			componentOperatingConditions.id
+		)
+
+	const ratings = await db
+		.select()
+		.from(componentRatings)
+		.where(eq(componentRatings.componentId, componentId))
+		.orderBy(componentRatings.sortOrder, componentRatings.id)
+
+	/*
+	 * Тепловые характеристики компонентов
+	 */
+	const thermalItems = await db
+		.select()
+		.from(componentThermal)
+		.where(eq(componentThermal.componentId, componentId))
+		.orderBy(componentThermal.id)
+
+	const aliases = await db
+		.select()
+		.from(componentAliases)
+		.where(eq(componentAliases.componentId, componentId))
+		.orderBy(desc(componentAliases.isPrimary), asc(componentAliases.alias))
+
+	const datasheetItemsRaw = await db
+		.select()
+		.from(datasheets)
+		.where(eq(datasheets.componentId, componentId))
+		.orderBy(
+			desc(datasheets.isPrimary),
+			desc(datasheets.createdAt),
+			desc(datasheets.id)
+		)
+
+	const datasheetItems = datasheetItemsRaw.map(item => ({
+		...item,
+		id: item.id.toString(),
+		fileSize: item.fileSize?.toString() ?? null
+	}))
+
+	// Все области применения из справочника.
+	const applicationsList = await db
+		.select({
+			id: applications.id,
+			name: applications.name,
+			slug: applications.slug
+		})
+		.from(applications)
+		.orderBy(asc(applications.name))
+
+	// Области применения, связанные с текущим компонентом.
+	const linkedApplications = await db
+		.select({
+			applicationId: applications.id,
+			name: applications.name,
+			slug: applications.slug,
+			description: componentApplications.description
+		})
+		.from(componentApplications)
+		.innerJoin(
+			applications,
+			eq(componentApplications.applicationId, applications.id)
+		)
+		.where(eq(componentApplications.componentId, componentId))
+		.orderBy(asc(applications.name))
 
 	return (
 		<div className='mx-auto max-w-7xl'>
@@ -220,8 +326,8 @@ export default async function ComponentPage({
 
 			{/* Tabs */}
 			<div className='overflow-hidden rounded-xl border border-gray-200 bg-white'>
-				<div className='overflow-x-auto border-b border-gray-200'>
-					<nav className='flex min-w-max'>
+				<div className='border-b border-gray-200'>
+					<nav className='flex flex-wrap'>
 						<Tab
 							href={`/admin/components/${component.id.toString()}`}
 							label='Основное'
@@ -230,61 +336,61 @@ export default async function ComponentPage({
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=variants`}
-							label='Варианты'
+							label={`Варианты (${variants.length})`}
 							active={tab === 'variants'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=pins`}
-							label='Пины'
+							label={`Пины (${pins.length})`}
 							active={tab === 'pins'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=specifications`}
-							label='Характеристики'
+							label={`Технические характеристики (${specifications.length})`}
 							active={tab === 'specifications'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=conditions`}
-							label='Условия'
+							label={`Условия эксплуатации (${operatingConditions.length})`}
 							active={tab === 'conditions'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=ratings`}
-							label='Ratings'
+							label={`Предельные характеристики (${ratings.length})`}
 							active={tab === 'ratings'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=thermal`}
-							label='Thermal'
+							label={`Тепловые характеристики (${thermalItems.length})`}
 							active={tab === 'thermal'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=aliases`}
-							label='Aliases'
+							label={`Альтернативные обозначения (${aliases.length})`}
 							active={tab === 'aliases'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=applications`}
-							label='Applications'
+							label={`Области применения (${linkedApplications.length})`}
 							active={tab === 'applications'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=datasheets`}
-							label='Datasheets'
+							label={`Документация (${datasheetItems.length})`}
 							active={tab === 'datasheets'}
 						/>
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=assets`}
-							label='Assets'
+							label={`Медиафайлы (${media.length})`}
 							active={tab === 'assets'}
 						/>
 
@@ -308,6 +414,49 @@ export default async function ComponentPage({
 						componentId={componentId}
 						variants={variants}
 						packageVariants={packageVariantsList}
+					/>
+				) : tab === 'pins' ? (
+					<ComponentPinsEditor
+						componentId={componentId}
+						pins={pins}
+						pinTypes={pinType.enumValues}
+					/>
+				) : tab === 'specifications' ? (
+					<ComponentSpecificationsEditor
+						componentId={componentId}
+						specifications={specifications}
+					/>
+				) : tab === 'conditions' ? (
+					<ComponentOperatingConditionsEditor
+						componentId={componentId}
+						conditions={operatingConditions}
+					/>
+				) : tab === 'ratings' ? (
+					<ComponentRatingsEditor
+						componentId={componentId}
+						ratings={ratings}
+					/>
+				) : tab === 'datasheets' ? (
+					<ComponentDatasheetsEditor
+						componentId={componentId.toString()}
+						items={datasheetItems}
+						documentTypes={documentType.enumValues}
+					/>
+				) : tab === 'aliases' ? (
+					<ComponentAliasesEditor
+						componentId={componentId}
+						aliases={aliases}
+					/>
+				) : tab === 'thermal' ? (
+					<ComponentThermalEditor
+						componentId={componentId}
+						thermalItems={thermalItems}
+					/>
+				) : tab === 'applications' ? (
+					<ComponentApplicationsEditor
+						componentId={componentId}
+						applications={applicationsList}
+						linkedApplications={linkedApplications}
 					/>
 				) : tab === 'assets' ? (
 					<div className='p-6'>

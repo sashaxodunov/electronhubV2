@@ -1,4 +1,5 @@
 export const segmentLabels: Record<string, string> = {
+	// Компоненты
 	components: 'Компоненты',
 	resistors: 'Резисторы',
 	capacitors: 'Конденсаторы',
@@ -15,6 +16,8 @@ export const segmentLabels: Record<string, string> = {
 	quartz: 'Кварцевые и частотные элементы',
 	powers: 'Источники питания',
 	lamps: 'Лампы',
+
+	// Отдельные компоненты
 	resistor: 'Резистор',
 	capacitor: 'Конденсатор',
 	inductance: 'Индуктивность',
@@ -26,9 +29,13 @@ export const segmentLabels: Record<string, string> = {
 	antenna: 'Антенна',
 	power: 'Источник питания',
 	lamp: 'Лампа',
+
+	// Каталог
 	catalog: 'Каталог',
 	categories: 'Категории',
 	electronics: 'Электроника',
+
+	// Товары
 	smartphones: 'Смартфоны',
 	laptops: 'Ноутбуки',
 	tablets: 'Планшеты',
@@ -39,6 +46,31 @@ export const segmentLabels: Record<string, string> = {
 	accessories: 'Аксессуары',
 	brands: 'Бренды',
 	products: 'Товары',
+
+	// Поиск и документы
 	search: 'Поиск',
-	datasheets: 'Даташиты'
+	datasheets: 'Даташиты',
+
+	// Калькуляторы
+	calculators: 'Калькуляторы',
+	electrical: 'Электрические расчёты',
+	filters: 'Фильтры',
+	inductors: 'Катушки индуктивности',
+	opamps: 'Операционные усилители',
+	signals: 'Сигналы',
+	'power-supplies': 'Источники питания',
+	pcb: 'Печатные платы',
+	rf: 'Радиочастотные расчёты',
+	ac: 'Расчёты переменного тока',
+
+	// Электрические расчёты
+	'ohms-law': 'Закон Ома',
+	// power: 'Мощность',
+	'voltage-divider': 'Делитель напряжения',
+	'current-divider': 'Делитель тока',
+
+	// Резисторы
+	'color-code': 'Цветовая маркировка',
+	parallel: 'Параллельное соединение',
+	series: 'Последовательное соединение'
 }

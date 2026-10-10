@@ -1,94 +1,94 @@
-import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 
-const STORAGE_ROOT = path.join(process.cwd(), 'storage')
+import 'server-only'
 
-/**
- * Преобразует storage key в физический путь.
- *
- * Например:
- *
- * components/42/1842/images/lm358.jpg
- *
- * →
- *
- * E:\!WEBSITE\ELECTRONHUB\storage\components\42\1842\images\lm358.jpg
- */
-function resolveStoragePath(storageKey: string): string {
-	const normalizedKey = storageKey.replace(/\\/g, '/').replace(/^\/+/, '')
+import {
+	deleteStoredObject,
+	getStoredObject,
+	getStoredObjectInfo,
+	storedObjectExists,
+	uploadStoredObject,
+} from './s3'
 
-	const filePath = path.resolve(STORAGE_ROOT, normalizedKey)
-	const rootPath = path.resolve(STORAGE_ROOT)
+function validateStorageKey(storageKey: string): string {
+	const key = storageKey.replace(/\\/g, '/').replace(/^\/+/, '')
 
-	if (filePath !== rootPath && !filePath.startsWith(`${rootPath}${path.sep}`)) {
+	if (
+		!key ||
+		key.split('/').some((part) => !part || part === '.' || part === '..') ||
+		key.includes('\0')
+	) {
 		throw new Error('Недопустимый storage key')
 	}
 
-	return filePath
+	return key
 }
 
-/**
- * Сохраняет файл в storage.
- */
+function getContentType(key: string): string {
+	const extension = key.split('.').pop()?.toLowerCase()
+
+	switch (extension) {
+		case 'png':
+			return 'image/png'
+		case 'jpg':
+		case 'jpeg':
+			return 'image/jpeg'
+		case 'webp':
+			return 'image/webp'
+		case 'gif':
+			return 'image/gif'
+		case 'svg':
+			return 'image/svg+xml'
+		case 'pdf':
+			return 'application/pdf'
+		case 'glb':
+			return 'model/gltf-binary'
+		case 'gltf':
+			return 'model/gltf+json'
+		case 'obj':
+			return 'text/plain'
+		case 'stl':
+			return 'model/stl'
+		case 'json':
+			return 'application/json'
+		default:
+			return 'application/octet-stream'
+	}
+}
+
 export async function saveFile(
 	storageKey: string,
-	data: Buffer | Uint8Array
+	data: Buffer | Uint8Array,
 ): Promise<void> {
-	const filePath = resolveStoragePath(storageKey)
+	const key = validateStorageKey(storageKey)
 
-	await mkdir(path.dirname(filePath), {
-		recursive: true
-	})
-
-	await writeFile(filePath, data)
+	await uploadStoredObject(key, data, getContentType(key))
 }
 
-/**
- * Читает файл из storage.
- */
 export async function getFile(storageKey: string): Promise<Buffer> {
-	const filePath = resolveStoragePath(storageKey)
+	const key = validateStorageKey(storageKey)
+	const result = await getStoredObject(key)
 
-	return readFile(filePath)
+	if (!result.Body) {
+		throw new Error('Файл не найден в S3')
+	}
+
+	return Buffer.from(await result.Body.transformToByteArray())
 }
 
-/**
- * Проверяет существование файла.
- */
 export async function fileExists(storageKey: string): Promise<boolean> {
-	try {
-		const filePath = resolveStoragePath(storageKey)
+	const key = validateStorageKey(storageKey)
 
-		await stat(filePath)
-
-		return true
-	} catch {
-		return false
-	}
+	return storedObjectExists(key)
 }
 
-/**
- * Возвращает информацию о файле.
- */
 export async function getFileInfo(storageKey: string) {
-	const filePath = resolveStoragePath(storageKey)
+	const key = validateStorageKey(storageKey)
 
-	const fileStat = await stat(filePath)
-
-	return {
-		size: fileStat.size,
-		createdAt: fileStat.birthtime,
-		modifiedAt: fileStat.mtime
-	}
+	return getStoredObjectInfo(key)
 }
 
-/**
- * Удаляет файл из storage.
- */
 export async function deleteFile(storageKey: string): Promise<void> {
-	const filePath = resolveStoragePath(storageKey)
+	const key = validateStorageKey(storageKey)
 
-	await rm(filePath, {
-		force: true
-	})
+	await deleteStoredObject(key)
 }

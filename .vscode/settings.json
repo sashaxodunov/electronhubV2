@@ -5,6 +5,7 @@
 		"кательная",
 		"Медиафайл",
 		"медиафайлов",
+		"неинвертирующие",
 		"ности",
 		"Опто",
 		"Промыш",
@@ -20,8 +21,18 @@
 		"electomechanical",
 		"electronhub",
 		"fkey",
+		"ILED",
+		"infineon",
+		"MOSFET",
+		"onsemi",
+		"opamps",
 		"pkey",
+		"Rобщ",
 		"trgm",
-		"tsvector"
+		"tsvector",
+		"Uпит",
+		"ULED",
+		"VLED",
+		"Vout"
 	]
 }

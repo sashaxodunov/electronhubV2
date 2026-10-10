@@ -79,7 +79,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 							value={name}
 							onChange={e => handleNameChange(e.target.value)}
 							required
-							className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
+							className='w-full text-gray-700 rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
 							placeholder='SOIC'
 						/>
 					</div>
@@ -95,7 +95,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 							value={slug}
 							onChange={e => setSlug(e.target.value)}
 							required
-							className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
+							className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none text-gray-700 focus:border-gray-500'
 							placeholder='soic'
 						/>
 					</div>
@@ -110,7 +110,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 							name='standard'
 							value={standard}
 							onChange={e => setStandard(e.target.value)}
-							className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
+							className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none text-gray-700 focus:border-gray-500'
 							placeholder='JEDEC'
 						/>
 					</div>
@@ -125,7 +125,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 							name='bodyType'
 							value={bodyType}
 							onChange={e => setBodyType(e.target.value)}
-							className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
+							className='w-full text-gray-700 rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
 							placeholder='Small Outline'
 						/>
 					</div>
@@ -139,7 +139,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 							name='mountingType'
 							value={mountingType}
 							onChange={e => setMountingType(e.target.value)}
-							className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-500'
+							className='w-full text-gray-700 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-500'
 						>
 							<option value=''>Не указан</option>
 							<option value='SMD'>SMD</option>
@@ -154,7 +154,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 								name='isActive'
 								checked={isActive}
 								onChange={e => setIsActive(e.target.checked)}
-								className='h-4 w-4 rounded border-gray-300'
+								className='h-4 w-4 text-gray-700 rounded border-gray-300'
 							/>
 							Активен
 						</label>
@@ -171,7 +171,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 						value={description}
 						onChange={e => setDescription(e.target.value)}
 						rows={5}
-						className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
+						className='w-full text-gray-700 rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-500'
 						placeholder='Описание семейства корпуса...'
 					/>
 				</div>
@@ -180,7 +180,7 @@ export default function PackageForm({ packageData }: PackageFormProps) {
 			<div className='flex items-center justify-end gap-3'>
 				<button
 					type='submit'
-					className='rounded-md bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800'
+					className='rounded-md text-gray-700 bg-gray-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800'
 				>
 					{isEdit ? 'Сохранить изменения' : 'Создать корпус'}
 				</button>

@@ -89,7 +89,7 @@ export default function ComponentsPage() {
 					className='
             mb-5 inline-flex items-center gap-2
             rounded-full border border-white/10
-            bg-white/[0.03]
+            bg-white/3
             px-3 py-1.5
             font-manrope text-[11px]
             uppercase tracking-[0.18em]
@@ -390,7 +390,7 @@ export default function ComponentsPage() {
 										d='M 30 0 L 0 0 0 30'
 										fill='none'
 										stroke='currentColor'
-										className='text-white/[0.045]'
+										className='text-white/4.5'
 									/>
 								</pattern>
 							</defs>
@@ -671,7 +671,7 @@ export default function ComponentsPage() {
             p-4 sm:p-6 lg:p-8
           '
 				>
-					<div className='aspect-[16/8] w-full'>
+					<div className='aspect-16/8 w-full'>
 						<svg
 							viewBox='0 0 900 460'
 							className='h-full w-full'
@@ -689,7 +689,7 @@ export default function ComponentsPage() {
 										d='M 60 0 L 0 0 0 60'
 										fill='none'
 										stroke='currentColor'
-										className='text-white/[0.05]'
+										className='text-white/5'
 										strokeWidth='1'
 									/>
 								</pattern>
@@ -1066,7 +1066,7 @@ export default function ComponentsPage() {
             relative overflow-hidden
             rounded-3xl
             border border-accent/20
-            bg-accent/[0.04]
+            bg-accent/4
             p-7 text-center
             sm:p-10 lg:p-14
           '

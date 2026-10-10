@@ -8,7 +8,7 @@ import { Menu, Search } from 'lucide-react'
 
 export function Header() {
 	return (
-		<header className='header mx-auto sticky top-0 z-50 w-full border-b border-amber-100'>
+		<header className='header mx-auto top-0 z-50 w-full border-b border-amber-100'>
 			<div className='mx-auto rounded-xl flex min-h-20 max-[750px]:min-h-18 max-[370px]:min-h-16 w-full max-w-333 items-center justify-between px-4 bg-gray-600/90'>
 				{/* Logo */}
 				<div className='mr-6 flex shrink-0'>

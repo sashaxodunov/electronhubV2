@@ -53,7 +53,7 @@ export default function SiteLayout({
 			{/* <ElectronicsGlassBackground /> */}
 			<Header />
 
-			<main className='min-h-[calc(100vh-8rem)]'>
+			<main className='min-h-[calc(100vh-8rem)] mx-auto max-w-6xl'>
 				<ElectronicsGlassBackground />
 				{children}
 			</main>

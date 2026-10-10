@@ -15,4 +15,6 @@ export {
 	deleteFile
 } from './storage'
 
+export { storageUrl } from './url'
+
 export type { StorageKey, StorageFileInfo } from './types'

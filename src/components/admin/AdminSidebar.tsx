@@ -43,6 +43,11 @@ const navigation = [
 		title: 'Глоссарий',
 		href: '/admin/glossary',
 		icon: '⌘'
+	},
+	{
+		title: 'Принципиальные схемы',
+		href: '/admin/documentation',
+		icon: '▤'
 	}
 ]
 

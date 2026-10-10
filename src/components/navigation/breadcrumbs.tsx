@@ -3,11 +3,16 @@
 import { ChevronRight, Home } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+
 import { segmentLabels } from '@/config/breadcrumbs'
 
-type BreadcrumbItem = {
+export type BreadcrumbItem = {
 	label: string
-	href: string
+	href?: string
+}
+
+type BreadcrumbsProps = {
+	items?: BreadcrumbItem[]
 }
 
 function formatSegment(segment: string): string {
@@ -20,7 +25,7 @@ function formatSegment(segment: string): string {
 	return decoded.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
 
-export default function Breadcrumbs() {
+export default function Breadcrumbs({ items: customItems }: BreadcrumbsProps) {
 	const pathname = usePathname()
 
 	if (!pathname || pathname === '/') {
@@ -29,19 +34,17 @@ export default function Breadcrumbs() {
 
 	const segments = pathname.split('/').filter(Boolean)
 
-	const items: BreadcrumbItem[] = segments.map((segment, index) => {
-		const href = '/' + segments.slice(0, index + 1).join('/')
-
-		return {
+	const items: BreadcrumbItem[] =
+		customItems ??
+		segments.map((segment, index) => ({
 			label: formatSegment(segment),
-			href
-		}
-	})
+			href: '/' + segments.slice(0, index + 1).join('/')
+		}))
 
 	return (
 		<nav
 			aria-label='Хлебные крошки'
-			className='w-full mt-10'
+			className='mt-10 p-5 w-full'
 		>
 			<ol className='flex items-center gap-1.5 overflow-hidden text-sm'>
 				{/* Главная */}
@@ -49,14 +52,7 @@ export default function Breadcrumbs() {
 					<Link
 						href='/'
 						aria-label='Главная'
-						className='
-              flex items-center gap-1.5
-              text-zinc-500
-              transition-colors
-              hover:text-zinc-950
-              dark:text-zinc-400
-              dark:hover:text-white
-            '
+						className='flex items-center gap-1.5 text-zinc-500 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
 					>
 						<Home
 							className='h-4 w-4'
@@ -73,42 +69,25 @@ export default function Breadcrumbs() {
 
 					return (
 						<li
-							key={item.href}
+							key={`${item.label}-${item.href ?? index}`}
 							className='flex min-w-0 items-center gap-1.5'
 						>
 							<ChevronRight
-								className='
-                  h-4 w-4
-                  shrink-0
-                  text-zinc-300
-                  dark:text-zinc-700
-                '
+								className='h-4 w-4 shrink-0 text-zinc-300 dark:text-zinc-700'
 								strokeWidth={1.8}
 							/>
 
-							{isLast ? (
+							{isLast || !item.href ? (
 								<span
-									aria-current='page'
-									className='
-                    truncate
-                    font-medium
-                    text-zinc-950
-                    dark:text-white
-                  '
+									aria-current={isLast ? 'page' : undefined}
+									className='truncate font-medium text-zinc-950 dark:text-white'
 								>
 									{item.label}
 								</span>
 							) : (
 								<Link
 									href={item.href}
-									className='
-                    truncate
-                    text-zinc-500
-                    transition-colors
-                    hover:text-zinc-950
-                    dark:text-zinc-400
-                    dark:hover:text-white
-                  '
+									className='truncate text-zinc-500 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
 								>
 									{item.label}
 								</Link>

@@ -305,7 +305,7 @@ export default async function DatasheetCategoryPage({
                     items-center justify-center
                     rounded-xl
                     border border-white/5
-                    bg-white/[0.02]
+                    bg-white/2
                   '
 								>
 									<span

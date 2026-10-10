@@ -21,10 +21,11 @@ export default function DocumentationSection() {
 				</header>
 
 				<div className='grid grid-cols-4 gap-x-7.5 gap-y-8.75 max-[800px]:grid-cols-3 max-[800px]:gap-x-7.5 max-[800px]:gap-y-7.5 max-[600px]:grid-cols-2 max-[600px]:gap-x-7.5 max-[600px]:gap-y-7.5 max-[400px]:mx-auto max-[400px]:grid-cols-1'>
-					{documentationCategories.map(({ title, image }, index) => (
+					{documentationCategories.map(({ title, slug, image, alt }) => (
 						<Link
-							key={title}
-							href={`/documentation/${index + 1}`}
+							key={slug}
+							href={`/documentation/${slug}`}
+							aria-label={title}
 							className='group relative block h-100 max-w-65 overflow-hidden rounded-[20px] shadow-[0_4px_15px_0_rgba(0,0,0,0.2)] max-[800px]:max-w-full max-[600px]:rounded-m max-[400px]:h-auto max-[400px]:max-w-full'
 						>
 							<span className='pointer-events-none absolute inset-0 z-10 bg-linear-to-b from-transparent to-black opacity-0 transition-opacity duration-200 ease-in group-hover:opacity-100 max-[800px]:text-[32px] [@media(hover:none)_and_(pointer:coarse)]:opacity-100' />
@@ -34,8 +35,8 @@ export default function DocumentationSection() {
 							</h3>
 
 							<Image
-								src={`${image}`}
-								alt={title}
+								src={image}
+								alt={alt}
 								width={260}
 								height={300}
 								className='h-full w-full object-cover'

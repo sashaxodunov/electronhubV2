@@ -49,13 +49,7 @@ function getOptionalBigInt(
 	return id
 }
 
-export async function createComponentVariant(formData: FormData) {
-	const componentId = getRequiredBigInt(
-		formData,
-		'componentId',
-		'Не указан компонент'
-	)
-
+function getVariantData(formData: FormData) {
 	const packageVariantId = getOptionalBigInt(
 		formData,
 		'packageVariantId'
@@ -93,8 +87,11 @@ export async function createComponentVariant(formData: FormData) {
 		formData.get('operatingTempMax') ?? ''
 	).trim()
 
-	const isPrimary = formData.get('isPrimary') === 'true'
-	const isActive = formData.get('isActive') === 'true'
+	const isPrimary =
+		formData.get('isPrimary') === 'true'
+
+	const isActive =
+		formData.get('isActive') === 'true'
 
 	if (!designation) {
 		throw new Error('Не указано обозначение варианта')
@@ -104,8 +101,7 @@ export async function createComponentVariant(formData: FormData) {
 		throw new Error('Не указан slug варианта')
 	}
 
-	await db.insert(componentVariants).values({
-		componentId,
+	return {
 		packageVariantId,
 		designation,
 		slug,
@@ -117,7 +113,51 @@ export async function createComponentVariant(formData: FormData) {
 		operatingTempMax: operatingTempMax || null,
 		isPrimary,
 		isActive
+	}
+}
+
+export async function createComponentVariant(
+	formData: FormData
+) {
+	const componentId = getRequiredBigInt(
+		formData,
+		'componentId',
+		'Не указан компонент'
+	)
+
+	const data = getVariantData(formData)
+
+	await db.insert(componentVariants).values({
+		componentId,
+		...data
 	})
+
+	redirect(
+		`/admin/components/${componentId}?tab=variants`
+	)
+}
+
+export async function updateComponentVariant(
+	formData: FormData
+) {
+	const id = getRequiredBigInt(
+		formData,
+		'id',
+		'Некорректный ID варианта'
+	)
+
+	const componentId = getRequiredBigInt(
+		formData,
+		'componentId',
+		'Некорректный ID компонента'
+	)
+
+	const data = getVariantData(formData)
+
+	await db
+		.update(componentVariants)
+		.set(data)
+		.where(eq(componentVariants.id, id))
 
 	redirect(
 		`/admin/components/${componentId}?tab=variants`
