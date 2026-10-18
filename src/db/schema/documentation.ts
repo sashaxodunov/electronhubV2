@@ -2,10 +2,8 @@
 import {
 	bigserial,
 	bigint,
-	boolean,
 	foreignKey,
 	index,
-	integer,
 	pgTable,
 	text,
 	timestamp,
@@ -14,9 +12,14 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { components } from './components'
+import { documentationSubcategories } from './documentation-subcategories'
+import { electronicsBrands } from './electronics-brands'
 
 /**
  * Записи раздела Documentation.
+ *
+ * Каждый тип документации создаётся отдельной записью:
+ * schematic, boardview, cad, manual и т. д.
  */
 export const documentation = pgTable(
 	'documentation',
@@ -25,7 +28,17 @@ export const documentation = pgTable(
 
 		categorySlug: varchar('category_slug', { length: 100 }).notNull(),
 
+		subcategoryId: bigint('subcategory_id', { mode: 'bigint' }),
+
 		componentId: bigint('component_id', { mode: 'bigint' }),
+
+		// Бренд электроники, к которому относится документация.
+		brandId: bigint('brand_id', { mode: 'bigint' }),
+
+		// Тип документации: schematic, boardview, cad, manual и т. д.
+		documentType: varchar('document_type', { length: 30 })
+			.default('schematic')
+			.notNull(),
 
 		title: varchar({ length: 255 }).notNull(),
 
@@ -51,7 +64,14 @@ export const documentation = pgTable(
 	},
 	table => [
 		index('idx_documentation_component_id').on(table.componentId),
+
+		index('idx_documentation_brand_id').on(table.brandId),
+
 		index('idx_documentation_status').on(table.status),
+
+		index('idx_documentation_subcategory_id').on(table.subcategoryId),
+
+		index('idx_documentation_document_type').on(table.documentType),
 
 		foreignKey({
 			columns: [table.componentId],
@@ -59,52 +79,18 @@ export const documentation = pgTable(
 			name: 'fk_documentation_component'
 		}).onDelete('set null'),
 
-		unique('documentation_slug_key').on(table.slug)
-	]
-)
-
-/**
- * Файлы, прикреплённые к записи документации.
- */
-export const documentationFiles = pgTable(
-	'documentation_files',
-	{
-		id: bigserial({ mode: 'bigint' }).primaryKey().notNull(),
-
-		documentationId: bigint('documentation_id', {
-			mode: 'bigint'
-		}).notNull(),
-
-		originalName: varchar('original_name', { length: 255 }).notNull(),
-
-		objectKey: text('object_key').notNull(),
-
-		contentType: varchar('content_type', { length: 150 }).notNull(),
-
-		sizeBytes: bigint('size_bytes', { mode: 'number' }).notNull(),
-
-		isPrimary: boolean('is_primary').default(false).notNull(),
-
-		sortOrder: integer('sort_order').default(0).notNull(),
-
-		createdAt: timestamp('created_at', {
-			withTimezone: true,
-			mode: 'string'
-		})
-			.defaultNow()
-			.notNull()
-	},
-	table => [
-		index('idx_documentation_files_documentation_id').on(
-			table.documentationId
-		),
-
-		unique('documentation_files_object_key_key').on(table.objectKey),
+		foreignKey({
+			columns: [table.subcategoryId],
+			foreignColumns: [documentationSubcategories.id],
+			name: 'fk_documentation_subcategory'
+		}).onDelete('set null'),
 
 		foreignKey({
-			columns: [table.documentationId],
-			foreignColumns: [documentation.id],
-			name: 'fk_documentation_files_documentation'
-		}).onDelete('cascade')
+			columns: [table.brandId],
+			foreignColumns: [electronicsBrands.id],
+			name: 'fk_documentation_brand'
+		}).onDelete('set null'),
+
+		unique('documentation_slug_key').on(table.slug)
 	]
 )

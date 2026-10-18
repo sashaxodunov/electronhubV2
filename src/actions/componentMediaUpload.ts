@@ -118,6 +118,7 @@ function getExtension(fileName: string): string {
 	return fileName.slice(dotIndex).toLowerCase()
 }
 
+// Функция выбора папки сохранения
 function getStorageFolder(type: string): string {
 	switch (type) {
 		case 'symbol':

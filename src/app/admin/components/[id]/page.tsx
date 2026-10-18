@@ -5,12 +5,14 @@ import ComponentRatingsEditor from '@/components/admin/ComponentRatingsEditor'
 import ComponentSpecificationsEditor from '@/components/admin/ComponentSpecificationsEditor'
 import ComponentThermalEditor from '@/components/admin/ComponentThermalEditor'
 import ComponentVariantsEditor from '@/components/admin/ComponentVariantsEditor'
-import { asc, desc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq } from 'drizzle-orm'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ComponentAliasesEditor from '@/components/admin/ComponentAliasesEditor'
 import ComponentApplicationsEditor from '@/components/admin/ComponentApplicationsEditor'
 import ComponentDatasheetsEditor from '@/components/admin/ComponentDatasheetsEditor'
+import ComponentGraphsEditor from '@/components/admin/ComponentGraphsEditor'
+import ComponentRelationsEditor from '@/components/admin/ComponentRelationsEditor'
 
 import { db } from '@/db'
 import {
@@ -24,11 +26,15 @@ import {
 	componentVariants,
 	componentRatings,
 	applications,
+	componentAssets,
+	componentGraphs,
 	componentApplications,
 	componentSpecifications,
 	componentThermal,
 	components,
+	relationType,
 	manufacturers,
+	componentRelations,
 	packageVariants,
 	packages,
 	datasheets,
@@ -253,6 +259,85 @@ export default async function ComponentPage({
 		.where(eq(componentApplications.componentId, componentId))
 		.orderBy(asc(applications.name))
 
+	const graphItemsRaw = await db
+		.select({
+			id: componentGraphs.id,
+			title: componentGraphs.title,
+			xAxisName: componentGraphs.xAxisName,
+			xAxisUnit: componentGraphs.xAxisUnit,
+			yAxisName: componentGraphs.yAxisName,
+			yAxisUnit: componentGraphs.yAxisUnit,
+			conditions: componentGraphs.conditions,
+			sourcePage: componentGraphs.sourcePage,
+			description: componentGraphs.description,
+			imageAssetId: componentGraphs.imageAssetId
+		})
+		.from(componentGraphs)
+		.where(eq(componentGraphs.componentId, componentId))
+		.orderBy(asc(componentGraphs.title), asc(componentGraphs.id))
+
+	const graphItems = graphItemsRaw.map(item => ({
+		...item,
+		id: item.id.toString(),
+		imageAssetId: item.imageAssetId?.toString() ?? null
+	}))
+
+	const graphAssetsRaw = await db
+		.select({
+			id: componentAssets.id,
+			title: componentAssets.title,
+			fileName: componentAssets.fileName,
+			filePath: componentAssets.filePath
+		})
+		.from(componentAssets)
+		.where(
+			and(
+				eq(componentAssets.componentId, componentId),
+				eq(componentAssets.isActive, true)
+			)
+		)
+		.orderBy(asc(componentAssets.sortOrder), asc(componentAssets.id))
+
+	const graphAssets = graphAssetsRaw.map(item => ({
+		...item,
+		id: item.id.toString()
+	}))
+
+	const relationsRaw = await db
+		.select({
+			id: componentRelations.id,
+			relatedComponentId: componentRelations.relatedComponentId,
+			relationType: componentRelations.relationType,
+			description: componentRelations.description
+		})
+		.from(componentRelations)
+		.where(eq(componentRelations.componentId, componentId))
+		.orderBy(asc(componentRelations.id))
+
+	const relations = relationsRaw.map(item => ({
+		...item,
+		id: item.id.toString(),
+		relatedComponentId: item.relatedComponentId.toString()
+	}))
+
+	const availableComponentsRaw = await db
+		.select({
+			id: components.id,
+			designation: components.designation,
+			name: components.name
+		})
+		.from(components)
+		.where(eq(components.isActive, true))
+		.orderBy(asc(components.designation))
+
+	const availableComponents = availableComponentsRaw
+		.filter(item => item.id !== componentId)
+		.map(item => ({
+			id: item.id.toString(),
+			designation: item.designation,
+			name: item.name
+		}))
+
 	return (
 		<div className='mx-auto max-w-7xl'>
 			{/* Header */}
@@ -396,7 +481,7 @@ export default async function ComponentPage({
 
 						<Tab
 							href={`/admin/components/${component.id.toString()}?tab=graphs`}
-							label='Графики'
+							label={`Графики (${graphItems.length})`}
 							active={tab === 'graphs'}
 						/>
 
@@ -457,6 +542,19 @@ export default async function ComponentPage({
 						componentId={componentId}
 						applications={applicationsList}
 						linkedApplications={linkedApplications}
+					/>
+				) : tab === 'graphs' ? (
+					<ComponentGraphsEditor
+						componentId={componentId.toString()}
+						graphs={graphItems}
+						assets={graphAssets}
+					/>
+				) : tab === 'relations' ? (
+					<ComponentRelationsEditor
+						componentId={componentId.toString()}
+						relations={relations}
+						availableComponents={availableComponents}
+						relationTypes={relationType.enumValues}
 					/>
 				) : tab === 'assets' ? (
 					<div className='p-6'>

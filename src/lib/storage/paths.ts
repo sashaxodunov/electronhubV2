@@ -17,8 +17,8 @@ export function getShard(id: bigint | number): string {
  * Формирует путь к файлу компонента.
  *
  * Примеры:
- * components/42/1842/images/top.webp
- * components/26/2026/symbols/ne555.svg
+ * files/42/1842/images/top.webp
+ * files/26/2026/symbols/ne555.svg
  */
 export function componentPath(
 	componentId: bigint | number,
@@ -28,7 +28,7 @@ export function componentPath(
 	const shard = getShard(componentId)
 	const id = componentId.toString()
 
-	return `components / ${shard} /${id}/${folder}/${fileName}`
+	return `files/${shard}/${id}/${folder}/${fileName}`
 }
 
 /**

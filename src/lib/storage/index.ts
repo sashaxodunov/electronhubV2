@@ -4,7 +4,7 @@ export {
 	componentDocumentPath,
 	packagePath,
 	packageVariantPath,
-	sitePath
+	sitePath,
 } from './paths'
 
 export {
@@ -12,9 +12,30 @@ export {
 	getFile,
 	fileExists,
 	getFileInfo,
-	deleteFile
+	deleteFile,
 } from './storage'
 
-export { storageUrl } from './url'
+export {
+	storageUrl,
+	documentationStorageUrl,
+} from './url'
 
-export type { StorageKey, StorageFileInfo } from './types'
+export {
+	saveDocumentationFile,
+	getDocumentationFile,
+	documentationFileExists,
+	getDocumentationFileInfo,
+	deleteDocumentationFile,
+} from './documentation-storage'
+
+export {
+	saveSchematicFile,
+	getSchematicFile,
+	schematicFileExists,
+	deleteSchematicFile,
+} from './schematics-storage'
+
+export type {
+	StorageKey,
+	StorageFileInfo,
+} from './types'

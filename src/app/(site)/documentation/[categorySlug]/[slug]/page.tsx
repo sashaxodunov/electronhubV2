@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 
 import { documentationCategories } from '@/config/categories'
 import { getPublishedDocumentationByCategoryAndSlug } from '@/server/documentation/queries'
-import { storageUrl } from '@/lib/storage'
+import { documentationStorageUrl } from '@/lib/storage'
 
 interface DocumentationPageProps {
 	params: Promise<{
@@ -63,8 +63,10 @@ function formatFileSize(size: number): string {
 	return `${(size / (1024 * 1024 * 1024)).toFixed(2)} ГБ`
 }
 
-function formatDate(value: string): string {
-	const date = new Date(value)
+function formatDate(value: Date | string | null | undefined): string {
+	if (!value) return ''
+
+	const date = value instanceof Date ? value : new Date(value)
 
 	if (Number.isNaN(date.getTime())) {
 		return ''
@@ -73,7 +75,8 @@ function formatDate(value: string): string {
 	return new Intl.DateTimeFormat('ru-RU', {
 		day: 'numeric',
 		month: 'long',
-		year: 'numeric'
+		year: 'numeric',
+		timeZone: 'Europe/Moscow'
 	}).format(date)
 }
 
@@ -176,7 +179,7 @@ export default async function DocumentationDetailPage({
 						</div>
 
 						<a
-							href={storageUrl(primaryFile.objectKey)}
+							href={documentationStorageUrl(primaryFile.objectKey)}
 							target='_blank'
 							rel='noreferrer'
 							className='inline-flex shrink-0 items-center justify-center rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90'
@@ -232,7 +235,7 @@ export default async function DocumentationDetailPage({
 									</div>
 
 									<a
-										href={storageUrl(file.objectKey)}
+										href={documentationStorageUrl(file.objectKey)}
 										target='_blank'
 										rel='noreferrer'
 										className='shrink-0 text-sm font-medium text-accent transition hover:opacity-80'

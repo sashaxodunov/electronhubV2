@@ -57,6 +57,41 @@
       "when": 1791617923616,
       "tag": "0007_chief_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791649147994,
+      "tag": "0008_charming_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791651715148,
+      "tag": "0009_wooden_cammi",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791740061427,
+      "tag": "0010_little_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792212081308,
+      "tag": "0011_tranquil_dark_phoenix",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792216304999,
+      "tag": "0012_wet_ravenous",
+      "breakpoints": true
     }
   ]
 }

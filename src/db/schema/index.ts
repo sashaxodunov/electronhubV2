@@ -27,3 +27,5 @@ export * from './package-variants'
 export * from './packages'
 
 export * from './documentation'
+export * from './documentation-files'
+export * from './documentation-subcategories'

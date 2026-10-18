@@ -26,7 +26,7 @@ export const componentRelations = pgTable(
 		componentId: bigint('component_id', { mode: 'bigint' }).notNull(),
 		// Исходный компонент
 		relatedComponentId: bigint('related_component_id', {
-			mode: 'number'
+			mode: 'bigint'
 		}).notNull(),
 		// Компонент, с которым устанавливается связь
 		relationType: relationType('relation_type').notNull(),

@@ -2,12 +2,13 @@ import Link from 'next/link'
 
 import { documentationCategories } from '@/config/categories'
 import { getAdminDocumentationList } from '@/server/documentation/queries'
+import { getDocumentationSubcategories } from '@/server/documentation/subcategories'
 
 export const metadata = {
 	title: 'Принципиальные схемы — админ-панель'
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string | Date): string {
 	const date = new Date(value)
 
 	if (Number.isNaN(date.getTime())) {
@@ -33,7 +34,14 @@ function getStatusLabel(status: string): string {
 }
 
 export default async function AdminDocumentationPage() {
-	const documents = await getAdminDocumentationList()
+	const [documents, subcategories] = await Promise.all([
+		getAdminDocumentationList(),
+		getDocumentationSubcategories()
+	])
+
+	const subcategoriesById = new Map(
+		subcategories.map(item => [String(item.id), item.title])
+	)
 
 	return (
 		<main className='mx-auto w-full max-w-7xl p-6 lg:p-8'>
@@ -48,12 +56,21 @@ export default async function AdminDocumentationPage() {
 					</p>
 				</div>
 
-				<Link
-					href='/admin/documentation/new'
-					className='inline-flex items-center justify-center rounded-lg bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-zinc-900'
-				>
-					+ Добавить документ
-				</Link>
+				<div className='flex flex-wrap gap-3'>
+					<Link
+						href='/admin/documentation/subcategories'
+						className='inline-flex items-center justify-center rounded-lg border border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800'
+					>
+						Управление подкатегориями
+					</Link>
+
+					<Link
+						href='/admin/documentation/new'
+						className='inline-flex items-center justify-center rounded-lg bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-zinc-900'
+					>
+						+ Добавить документ
+					</Link>
+				</div>
 			</div>
 
 			<div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3'>
@@ -103,7 +120,9 @@ export default async function AdminDocumentationPage() {
 							<thead className='border-b border-zinc-200 bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950'>
 								<tr>
 									<th className='px-5 py-4 font-medium'>Документ</th>
+									<th className='px-5 py-4 font-medium'>Бренд</th>
 									<th className='px-5 py-4 font-medium'>Категория</th>
+									<th className='px-5 py-4 font-medium'>Подкатегория</th>
 									<th className='px-5 py-4 font-medium'>Статус</th>
 									<th className='px-5 py-4 font-medium'>Файлы</th>
 									<th className='px-5 py-4 font-medium'>Обновлён</th>
@@ -118,6 +137,11 @@ export default async function AdminDocumentationPage() {
 									const category = documentationCategories.find(
 										item => item.slug === document.categorySlug
 									)
+
+									const subcategoryTitle =
+										document.subcategoryId == null
+											? null
+											: subcategoriesById.get(String(document.subcategoryId))
 
 									return (
 										<tr
@@ -134,7 +158,19 @@ export default async function AdminDocumentationPage() {
 											</td>
 
 											<td className='px-5 py-4 text-zinc-600 dark:text-zinc-300'>
+												{document.brandName ?? (
+													<span className='text-zinc-400'>—</span>
+												)}
+											</td>
+
+											<td className='px-5 py-4 text-zinc-600 dark:text-zinc-300'>
 												{category?.title ?? document.categorySlug}
+											</td>
+
+											<td className='px-5 py-4 text-zinc-600 dark:text-zinc-300'>
+												{subcategoryTitle ?? (
+													<span className='text-zinc-400'>—</span>
+												)}
 											</td>
 
 											<td className='px-5 py-4'>

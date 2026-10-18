@@ -25,10 +25,8 @@ import { glossaryTerms } from './schema/glossary-terms'
 import { glossaryRelations } from './schema/glossary-relations'
 import { componentApplications } from './schema/component-applications'
 import { applications } from './schema/applications'
-import {
-	documentation,
-	documentationFiles
-} from './schema/documentation'
+import { documentation } from './schema/documentation'
+import { documentationFiles } from './schema/documentation-files'
 
 export const manufacturersRelations = relations(
 	manufacturers,

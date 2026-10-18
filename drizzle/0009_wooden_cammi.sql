@@ -1,0 +1,1 @@
+CREATE INDEX "idx_documentation_subcategory_id" ON "documentation" USING btree ("subcategory_id");
