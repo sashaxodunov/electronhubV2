@@ -7,43 +7,62 @@ import { db } from '@/db'
 import { components } from '@/db/schema'
 import { requireAdmin } from '@/lib/auth/require-admin'
 
+
+// Функция проверки формата и положительного значения
+function parsePositiveBigInt(value: string): bigint | null {
+	if (!/^\d+$/.test(value)) {
+		return null
+	}
+
+	const id = BigInt(value)
+
+	return id > 0n ? id : null
+}
+
+//Функция проверки тип файла
+function getFormString(
+	formData: FormData,
+	name: string,
+): string {
+	const value = formData.get(name)
+
+	if (typeof value !== 'string') {
+		return ''
+	}
+
+	return value.trim()
+}
+
+// функция проверки обязательного идентификатора
 function getRequiredBigInt(
 	formData: FormData,
 	name: string,
 	message: string,
 ): bigint {
-	const value = String(formData.get(name) ?? '').trim()
+	const value = getFormString(formData, name)
+	const id = parsePositiveBigInt(value)
 
-	if (!value || !/^\d+$/.test(value)) {
-		throw new Error(message)
-	}
-
-	const id = BigInt(value)
-
-	if (id <= BigInt(0)) {
+	if (id === null) {
 		throw new Error(message)
 	}
 
 	return id
 }
 
+// Функция проверки необязательного идентификатора
 function getOptionalBigInt(
 	formData: FormData,
 	name: string,
 ): bigint | null {
-	const value = String(formData.get(name) ?? '').trim()
+	const value = getFormString(formData, name)
 
 	if (!value) {
 		return null
 	}
 
-	if (!/^\d+$/.test(value)) {
-		throw new Error(`Некорректное значение поля ${name}`)
-	}
+	const id = parsePositiveBigInt(value)
 
-	const id = BigInt(value)
-
-	if (id <= BigInt(0)) {
+	if (id === null) {
 		throw new Error(`Некорректное значение поля ${name}`)
 	}
 
@@ -51,15 +70,11 @@ function getOptionalBigInt(
 }
 
 export async function createComponent(formData: FormData) {
-	await requireAdmin()
+	await requireAdmin() // Проверяем права администратора
 
-	const name = String(formData.get('name') ?? '').trim()
-	const designation = String(
-		formData.get('designation') ?? '',
-	).trim()
-	const slug = String(formData.get('slug') ?? '')
-		.trim()
-		.toLowerCase()
+	const name = getFormString(formData, 'name')
+	const designation = getFormString(formData, 'designation')
+	const slug = getFormString(formData, 'slug').toLowerCase()
 
 	const manufacturerId = getRequiredBigInt(
 		formData,
@@ -87,7 +102,11 @@ export async function createComponent(formData: FormData) {
 		formData.get('description') ?? '',
 	).trim()
 
-	const isActive = formData.get('isActive') === 'true'
+	const activeValue = getFormString(formData, 'isActive')
+	if (activeValue !== 'true' && activeValue !== 'false') {
+		throw new Error('Некорректный статус компонента')
+	}
+	const isActive = activeValue === 'true'
 
 	if (!name) {
 		throw new Error('Не указано название компонента')

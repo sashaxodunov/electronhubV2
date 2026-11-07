@@ -54,42 +54,47 @@ export const components = pgTable(
 			.defaultNow()
 			.notNull()
 	},
+
 	table => [
 		index('idx_components_category_id').using(
 			'btree',
 			table.categoryId.asc().nullsLast().op('int8_ops')
-		),
+		), // Индекс по категории
 		index('idx_components_designation_trgm').using(
 			'gin',
 			table.designation.asc().nullsLast().op('gin_trgm_ops')
-		),
+		), // Индекс по обозначению
 		index('idx_components_manufacturer_id').using(
 			'btree',
 			table.manufacturerId.asc().nullsLast().op('int8_ops')
-		),
+		), // Индекс по производителю
 		index('idx_components_name_trgm').using(
 			'gin',
 			table.name.asc().nullsLast().op('gin_trgm_ops')
-		),
+		), // Индекс по названию
 		index('idx_components_series_id').using(
 			'btree',
 			table.seriesId.asc().nullsLast().op('int8_ops')
-		),
+		), // Индекс по серии
+
 		foreignKey({
 			columns: [table.categoryId],
 			foreignColumns: [categories.id],
 			name: 'fk_components_category'
 		}).onDelete('restrict'),
+
 		foreignKey({
 			columns: [table.seriesId],
 			foreignColumns: [componentSeries.id],
 			name: 'fk_components_series'
 		}).onDelete('set null'),
+
 		foreignKey({
 			columns: [table.manufacturerId],
 			foreignColumns: [manufacturers.id],
 			name: 'fk_components_manufacturer'
 		}).onDelete('restrict'),
+
 		unique('components_slug_key').on(table.slug)
 	]
 )

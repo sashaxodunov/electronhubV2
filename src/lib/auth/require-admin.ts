@@ -5,7 +5,9 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 const COOKIE_NAME = 'electronhub_admin_session'
+// Имя cookie в которой хранится токен сессии
 const SESSION_DURATION = 8 * 60 * 60
+// Срок действия сессии в секундах
 
 type SessionPayload = {
 	iat: number

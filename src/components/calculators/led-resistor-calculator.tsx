@@ -519,10 +519,10 @@ export default function LedResistorCalculator() {
 							<rect
 								x='25'
 								y='205'
-								width='110'
+								width='210'
 								height='190'
 								rx='18'
-								fill='#26343d'
+								fill='purple'
 								stroke='#70838d'
 								strokeWidth='2'
 							/>
